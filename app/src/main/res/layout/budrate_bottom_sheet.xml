@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="HardCodedText">
+
+    <TextView
+        android:id="@+id/tv_screen_rotation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:fontFamily="@font/adamina"
+        android:text="Screen Rotation"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:background="@drawable/bottom_sheet_line"
+        android:textStyle="bold" />
+
+
+    <TextView
+        android:id="@+id/tv_select_meter_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_screen_rotation"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/adamina"
+        android:text="Select Meter Type"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+
+    <TextView
+        android:id="@+id/tv_phase_one"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_select_meter_type"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:fontFamily="@font/adamina"
+        android:text="Single Phase /IRDA"
+        android:textColor="@color/black"
+        android:textSize="15sp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/sw_single_phase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_phase_one"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="10dp"
+        android:fontFamily="@font/adamina"
+        android:textSize="15sp"
+        android:thumb="@drawable/thumb_tracker"
+        app:showText="true"
+        app:track="@drawable/custom_tracker" />
+
+    <TextView
+        android:id="@+id/tv_phase_three"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sw_single_phase"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="@font/adamina"
+        android:text="Three Phase /IRDA"
+        android:textColor="@color/black"
+        android:textSize="15sp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/sw_three_phase"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_phase_three"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="50dp"
+        android:fontFamily="@font/adamina"
+        android:textSize="15sp"
+        android:thumb="@drawable/thumb_tracker"
+        app:showText="true"
+        app:track="@drawable/custom_tracker" />
+
+
+</RelativeLayout>

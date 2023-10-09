@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView1"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#e8e8e7"
+    android:orientation="vertical">
+
+<LinearLayout 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/color_textcolor"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_marginTop="5dp"
+    android:layout_gravity="center_vertical|center_horizontal">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical" >
+    <TextView
+        android:id="@+id/Header_text"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:textStyle="bold|italic"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:textColor="@color/color_gray" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="vertical" >
+
+          <TextView
+            android:id="@+id/TV_displaydata"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:textSize="15sp"
+            android:textColor="@color/color_gray"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/color_textcolor"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="center_vertical|center_horizontal">
+
+    <Button
+        android:id="@+id/btn_Cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/weibo"
+        android:text="Cancel"
+        android:textStyle="bold"
+        android:textColor="#ffffff"
+        android:layout_weight="1"
+        android:layout_marginLeft="@dimen/dimen_18dp"
+        android:layout_marginRight="@dimen/dimen_18dp"
+        android:layout_marginBottom="@dimen/dimen_20dp"/>
+
+     <Button
+        android:id="@+id/btn_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/wechat"
+         android:text="Save &amp; Print"
+        android:textColor="#ffffff"
+         android:layout_weight="1"
+         android:textStyle="bold"
+         android:layout_marginLeft="@dimen/dimen_18dp"
+         android:layout_marginRight="@dimen/dimen_18dp"
+         android:layout_marginBottom="@dimen/dimen_20dp"/>
+    </LinearLayout>
+</LinearLayout></ScrollView>

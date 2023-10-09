@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+      >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/slideshare">
+        <TextView
+
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Printer and Bluetooth Settings"
+            android:textColor="@color/white"
+android:layout_gravity="center_vertical|center_horizontal"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="@dimen/dimen_18dp"
+            />
+
+
+    </LinearLayout>
+         <TextView
+    android:id="@+id/bluetoothstate" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Device Name  : "
+            android:textSize="20sp"
+            android:textStyle="bold"
+
+            />
+
+
+        <TextView
+            android:id="@+id/TV_DeviceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+
+            /></LinearLayout>
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+   >
+     
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MAC Address  : "
+        android:textSize="20sp"
+        android:textStyle="bold"
+
+          />
+
+ 
+   <TextView
+		android:id="@+id/btaddTV"      
+   		 android:layout_width="wrap_content"
+       	 android:layout_height="wrap_content"
+     android:textSize="18sp"
+                android:textStyle="bold"
+     		
+    /></LinearLayout>
+<EditText
+        android:id="@+id/bluetoothAds"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+      
+         >
+
+        
+    </EditText>
+<Button
+    android:id="@+id/scandevice" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:text="Scan Bluetooth Devices" 
+     android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#2095dd"   
+                
+    /> 
+    <Button
+        android:id="@+id/backBtnSET"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+     android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="#FF0000"   
+                
+        android:text="   BACK   " />
+    
+    <ListView
+         android:id="@+id/devicesfound" 
+         android:layout_width="fill_parent" 
+         android:layout_height="fill_parent"
+         ></ListView>"
+
+</LinearLayout>

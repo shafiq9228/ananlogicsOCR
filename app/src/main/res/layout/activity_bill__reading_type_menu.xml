@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_7">
+
+    <!-- Header aligned to top -->
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@color/slideshare"
+        android:gravity="center" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dimen_50dp"
+            android:layout_alignParentTop="true"
+            android:background="@color/slideshare"
+            android:gravity="center"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_weight="0.1"
+                android:background="@color/slideshare"
+                android:gravity="left"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/apcpdcl_logo" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/BillingMenu"
+                android:textColor="@color/colorAccent"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:gravity="center"
+                android:layout_weight="1"    />
+
+            <Button
+                android:layout_width="25dp"
+                android:layout_height="40dp"
+                android:background="@drawable/ic_baseline_home_24"
+                android:id="@+id/Btn_home"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:gravity="right"
+                android:layout_alignParentRight="true"
+                android:layout_weight="0.1"     />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!-- Footer aligned to bottom -->
+    <RelativeLayout
+        android:id="@+id/footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#FC0"
+        android:gravity="center" >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="@color/wechat"
+            android:gravity="center"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#D1FFFFFF"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:textSize="15sp"
+                android:gravity="bottom|center_horizontal"
+                android:text="Powered by : Analogics Tech India Ltd."/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:textColor="#D1FFFFFF"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:textSize="15sp"
+                android:gravity="bottom|center_horizontal"
+                android:text="@string/version"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Scrollable Item below header and above footer -->
+    <ScrollView
+        android:id="@+id/scrollableContents"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/footer"
+        android:background="#CD000000"
+        android:layout_below="@id/header" >
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal|center_vertical"
+            android:orientation="vertical" >
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone"            >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="90dp"
+                    android:id="@+id/slidingimage"             />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:layout_marginTop="30dp">
+
+                <Button
+                    android:id="@+id/Btn_ManualReading"
+                    android:layout_width="@dimen/dimen_35dp"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/ir_icon_75x75"
+                    android:text="@string/ManualReading"
+                    android:textStyle="bold"
+                    android:background="#00FFFFFF"
+                    android:textColor="@color/menulabel"
+                    android:textSize="15sp"
+                    android:layout_weight="1"/>
+
+                <Button
+                    android:id="@+id/Btn_PhotoBilling"
+                    android:layout_width="@dimen/dimen_35dp"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/cam_icon"
+                    android:text="@string/Photo"
+                    android:textStyle="bold"
+                    android:background="#00FFFFFF"
+                    android:textColor="@color/menulabel"
+                    android:textSize="15sp"
+                    android:layout_weight="1"   />
+
+                <Button
+                    android:id="@+id/Btn_IRDA"
+                    android:layout_width="@dimen/dimen_35dp"
+                    android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/irda_pink_75x75"
+                    android:text="@string/IRDA"
+                    android:textStyle="bold"
+                    android:background="#00FFFFFF"
+                    android:textColor="@color/menulabel"
+                    android:textSize="15sp"
+                    android:layout_weight="1"   />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+
+
+
+
+</RelativeLayout>
