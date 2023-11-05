@@ -289,7 +289,6 @@ public class OfflineServiceUpload extends Service {
     public void UploadBillingData(String eroCode, String sectionId, String encodedTardata, String out_sourceFileName) {
 
         try {
-
             if (true) return;
             Log.d("myMeterApp", encodedTardata);
             apiInterface = APIClient.getClient().create(APIInterface.class);

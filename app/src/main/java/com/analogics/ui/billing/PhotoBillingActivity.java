@@ -57,7 +57,6 @@ public class PhotoBillingActivity extends AppCompatActivity implements SurfaceHo
                     camera.stopPreview();
                     camera.release();
                     camera = null;
-
                     previewing = false;
                 }
             }

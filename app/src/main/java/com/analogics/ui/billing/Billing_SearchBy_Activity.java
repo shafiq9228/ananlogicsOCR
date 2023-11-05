@@ -58,10 +58,9 @@ public class Billing_SearchBy_Activity extends Activity {
     ConsumerDataVO consumerDataVO = new ConsumerDataVO();
     inputDataVO inputDataVO = new inputDataVO();
     IrdaVO irdaVO = new IrdaVO();
-    //String[] sel_searchBy = { "Meter Number","USC Code","Consumer Name", "Service Number"};
     String[] sel_searchBy = {"NORMAL", "A4 SRV6", "A4 SRV5", "A5 SRV5", "SRVNO13", "CITY", "5SP5", "A4 2 S5", "A5 SRV"};
     Spinner SP_SearchBy;
-    //AutoCompleteTextView ACT_searchby;
+
     Button Btn_GetDetails;
     EditText ET_ServiceNo;
     EditText ET_AreaCode;

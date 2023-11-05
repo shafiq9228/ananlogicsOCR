@@ -899,8 +899,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+//        if (kwhDialogEditText != null){
+//            kwhDialogEditText.clearFocus();
+//        }
         if (data == null) return;
-
         String meterNumber = data.getStringExtra("meterNumber");
 
         if (kwhDialogImageView != null && MeterDetails.outputBase64 != null) {
@@ -1035,18 +1037,16 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         textView.setTextSize(20);
         editText.setInputType(InputType.TYPE_CLASS_NUMBER);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        Btn_next.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                editText.clearFocus();
-                if (editText.getText().length() > 0)
-                    ReturnRensponse = Integer.parseInt(editText.getText().toString());
-                else ReturnRensponse = 1;
-                System.out.println("automatic_status_entry ret:" + ReturnRensponse);
-                if (ReturnRensponse == 0) inputDataVO.setPmtrsts(1);
-                else inputDataVO.setPmtrsts(ReturnRensponse);
-                System.out.println("Pmtrsts:" + inputDataVO.getPmtrsts());
+        Btn_next.setOnClickListener(v -> {
+            dialog.dismiss();
+            editText.clearFocus();
+            if (editText.getText().length() > 0)
+                ReturnRensponse = Integer.parseInt(editText.getText().toString());
+            else ReturnRensponse = 1;
+            System.out.println("automatic_status_entry ret:" + ReturnRensponse);
+            if (ReturnRensponse == 0) inputDataVO.setPmtrsts(1);
+            else inputDataVO.setPmtrsts(ReturnRensponse);
+            System.out.println("Pmtrsts:" + inputDataVO.getPmtrsts());
 
 //                if(((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 5))
 //                        && (inputDataVO.getTriVectorFlag() == 1)){
@@ -1055,18 +1055,17 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
 //                    return;
 //                }else
 //
-                if (((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 5)) && (inputDataVO.getNetMeteringFlag() == 1)) {
-                    Toast.makeText(Billing_Sequence_Activity.this, "\"IR/IRDA CONSUMER\\nMANUAL READINGS NOT \\nALLOWED \".", Toast.LENGTH_LONG).show();
-                    automaticStatusEntryFunction();
-                    return;
-                } else if ((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 9) || (inputDataVO.getPmtrsts() == 3) || (inputDataVO.getPmtrsts() == 2) || (inputDataVO.getPmtrsts() == 11) || (inputDataVO.getPmtrsts() == 5) || (inputDataVO.getPmtrsts() == 6) || (inputDataVO.getPmtrsts() == 8) || (inputDataVO.getPmtrsts() == 12)) {
-                    Toast.makeText(Billing_Sequence_Activity.this, "\"IR/IRDA CONSUMER\\nMANUAL READINGS NOT \\nALLOWED \".", Toast.LENGTH_LONG).show();
-                    automaticStatusEntryFunction();
-                    return;
-                } else {
-                    status_punched_flag = 1;
-                    kwhEntryFunction();
-                }
+            if (((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 5)) && (inputDataVO.getNetMeteringFlag() == 1)) {
+                Toast.makeText(Billing_Sequence_Activity.this, "\"IR/IRDA CONSUMER\\nMANUAL READINGS NOT \\nALLOWED \".", Toast.LENGTH_LONG).show();
+                automaticStatusEntryFunction();
+                return;
+            } else if ((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 9) || (inputDataVO.getPmtrsts() == 3) || (inputDataVO.getPmtrsts() == 2) || (inputDataVO.getPmtrsts() == 11) || (inputDataVO.getPmtrsts() == 5) || (inputDataVO.getPmtrsts() == 6) || (inputDataVO.getPmtrsts() == 8) || (inputDataVO.getPmtrsts() == 12)) {
+                Toast.makeText(Billing_Sequence_Activity.this, "\"IR/IRDA CONSUMER\\nMANUAL READINGS NOT \\nALLOWED \".", Toast.LENGTH_LONG).show();
+                automaticStatusEntryFunction();
+                return;
+            } else {
+                status_punched_flag = 1;
+                kwhEntryFunction();
             }
         });
         Btn_back.setOnClickListener(new OnClickListener() {
@@ -1374,25 +1373,28 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
             });
             nextBtn.setOnClickListener(view -> {
                 if (MeterDetails.fullImageBitmap != null) {
+
+                    MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
+                    confirmationDialog();
                     dialog.dismiss();
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(Billing_Sequence_Activity.this);
-                    builder.setMessage("Do you want to Save Photo's ?");
-
-                    builder.setTitle("Save Photos!");
-
-                    builder.setPositiveButton("Yes", (m, which) -> {
-                        MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
-                        confirmationDialog();
-                    });
-
-                    builder.setNegativeButton("No", (m, which) -> {
-                        m.dismiss();
-                    });
-                    builder.setCancelable(false);
-                    AlertDialog mDialog = builder.create();
-
-                    mDialog.show();
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(Billing_Sequence_Activity.this);
+//                    builder.setMessage("Do you want to Save Photo's ?");
+//
+//                    builder.setTitle("Save Photos!");
+//
+//                    builder.setPositiveButton("Yes", (m, which) -> {
+//                        MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
+//                        confirmationDialog();
+//                    });
+//
+//                    builder.setNegativeButton("No", (m, which) -> {
+//                        m.dismiss();
+//                    });
+//                    builder.setCancelable(false);
+//                    AlertDialog mDialog = builder.create();
+//
+//                    mDialog.show();
 
 
                 } else {

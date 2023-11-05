@@ -856,37 +856,12 @@ public class Search_By_NameActivity extends AppCompatActivity {
             alertDialog.setCancelable(false);
             alertDialog.setView(alertLayout);
             AlertDialog dialog = alertDialog.create();
-
-            photoBtn.setOnClickListener(view -> {
-                openOcrCamera(true, MeterType.FullPhoto);
-
-            });
-            nextBtn.setOnClickListener(view -> {
-
+            photoBtn.setOnClickListener(view -> openOcrCamera(true, MeterType.FullPhoto));
+            nextBtn.setOnClickListener(v -> {
                 if (MeterDetails.fullImageBitmap != null) {
                     dialog.dismiss();
-
-
-                    dialog.dismiss();
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(Search_By_NameActivity.this);
-                    builder.setMessage("Do you want to Save Photo's ?");
-
-                    builder.setTitle("Save Photos!");
-
-                    builder.setPositiveButton("Yes", (m, which) -> {
-                        MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
-                        confirmationDialog();
-                    });
-
-                    builder.setNegativeButton("No", (m, which) -> {
-                        m.dismiss();
-                    });
-                    builder.setCancelable(false);
-                    AlertDialog mDialog = builder.create();
-
-                    mDialog.show();
-
+                    MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
+                    confirmationDialog();
                 } else {
                     Toast.makeText(getApplicationContext(), "Please Capture Full Photo", Toast.LENGTH_SHORT).show();
                 }
@@ -894,7 +869,6 @@ public class Search_By_NameActivity extends AppCompatActivity {
             backBtn.setOnClickListener(view -> {
                 dialog.dismiss();
             });
-
             dialog.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -1995,13 +1969,17 @@ public class Search_By_NameActivity extends AppCompatActivity {
             } else {
                 try {
                     MeterDetails.kvahData.setManual(!MeterDetails.kvahData.getValue().equals(editText.getText().toString()));
-                    long ret_float = Long.parseLong(editText.getText().toString());
-                    System.out.println("ret_float:" + ret_float);
+                    long ret_float;
+                    if (editText.getText().toString().contains(".")) {
+                        ret_float = Long.parseLong(editText.getText().toString().split("\\.")[0]);
+                    } else {
+                        ret_float = Long.parseLong(editText.getText().toString());
+                    }
                     inputDataVO.setPresentKvah(ret_float);
                     inputDataVO.setMTRaccuracy(1.00F);
                     rmdEntryFunction();
                 } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), "" + e.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "" + e, Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -2072,15 +2050,18 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 showkwhAlertDialog("PRV KWH:" + inputDataVO.getPreviousKwh() + "\nPRS KWH:", 11);
                 return;
             }
-
             try {
                 MeterDetails.kvahData.setManual(!MeterDetails.kvahData.getValue().equals(editText.getText().toString()));
-
-                long ret_float = Long.parseLong(editText.getText().toString());
-                System.out.println("ret_float:" + ret_float);
-                inputDataVO.setPmtrred((long) ret_float);
-                irdaVO.setKWH(ret_float);
-            } catch (Exception ignored) {
+                long value;
+                if (editText.getText().toString().contains(".")) {
+                    value = Long.parseLong(editText.getText().toString().split("\\.")[0]);
+                } else {
+                    value = Long.parseLong(editText.getText().toString());
+                }
+                inputDataVO.setPmtrred(value);
+                irdaVO.setKWH(value);
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
             inputDataVO.setPresentKwh(inputDataVO.getPmtrred());
             System.out.println("Pmtrred:" + inputDataVO.getPmtrred() + " PresentKwh:" + inputDataVO.getPresentKwh());
@@ -2088,24 +2069,17 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 System.out.println("status_punched_flag:" + status_punched_flag + " meterChangeFlag:" + inputDataVO.getMeterChangeFlag());
                 if (inputDataVO.getMeterChangeFlag() != 1) {
                     status_entry("PRV KWH:" + inputDataVO.getPreviousKwh() + "\nPRS KWH:" + inputDataVO.getPresentKwh() + "\nPRES STATUS:", 2);
-                    return;
                 } else {
                     Toast.makeText(Search_By_NameActivity.this, "PRES STATUS : 04", Toast.LENGTH_LONG).show();
                     inputDataVO.setPmtrsts(14);
                     inputDataVO.setKvahMeterStatus(14);
                     export_KWHreading_entry();
-                    return;
                 }
+                return;
             }
             export_KWHreading_entry();
         });
-        Btn_back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Toast.makeText(Search_By_NameActivity.this,"back",Toast.LENGTH_LONG).show();
-                dialog.dismiss();
-            }
-        });
+        Btn_back.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
 

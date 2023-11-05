@@ -87,12 +87,9 @@ public class BillingMenuActivity extends AppCompatActivity {
 
     public void clickListener() {
 
-        btnSasaBillPrint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(BillingMenuActivity.this, SasaBillPrintActivity.class);
-                startActivity(intent);
-            }
+        btnSasaBillPrint.setOnClickListener(view -> {
+            Intent intent = new Intent(BillingMenuActivity.this, SasaBillPrintActivity.class);
+            startActivity(intent);
         });
 
         Btn_home.setOnClickListener(new View.OnClickListener() {

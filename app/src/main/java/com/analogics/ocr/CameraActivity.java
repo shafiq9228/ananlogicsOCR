@@ -39,6 +39,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -48,6 +49,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
@@ -192,12 +194,31 @@ public class CameraActivity extends AppCompatActivity {
             ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);
             String url = "https://todoapp-d9a67.el.r.appspot.com/fetchMeterNumber";
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("img", imageBase64);
+            jsonObject.put("capturedphoto", imageBase64);
+
             RequestQueue requestQueue = Volley.newRequestQueue(this);
             JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject, jsonObjResp -> {
                 try {
                     Intent intent = new Intent();
-                    String meterNumber = jsonObjResp.getJSONObject("data").getString("meterNumber");
+
+                    String meterNumber = "";
+                    JSONObject response = jsonObjResp;
+                    if (response.has("meterNumber")) {
+                        JSONArray meterNumberArray = response.getJSONArray("meterNumber");
+                        ArrayList<Integer> meterNumbers = new ArrayList<>();
+
+                        // Iterate through the JSON array and add each integer to the ArrayList
+                        for (int i = 0; i < meterNumberArray.length(); i++) {
+                            meterNumbers.add(meterNumberArray.getInt(i));
+                        }
+
+                        // Now, you have meterNumbers as an ArrayList<Integer>
+                        // Do whatever you need with the ArrayList here.
+                    } else {
+                        // "meterNumber" key not found in the JSON response
+                        // Handle this case accordingly.
+                    }
+                            //jsonObjResp.getJSONObject("data").getString("meterNumber");
                     if (meterNumber.equals("")) {
                         meterNumber = " ";
                     }
