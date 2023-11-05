@@ -67,7 +67,7 @@ public class OfflineServiceUpload extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-    Log.d("FazilApp", "HELLO IM RUNNING");
+        Log.d("FazilApp", "HELLO IM RUNNING");
         try {
             myTimer = new Timer();
             myTask = new MyTimerTask();
@@ -289,8 +289,6 @@ public class OfflineServiceUpload extends Service {
     public void UploadBillingData(String eroCode, String sectionId, String encodedTardata, String out_sourceFileName) {
 
         try {
-            if (true) return;
-            Log.d("myMeterApp", encodedTardata);
             apiInterface = APIClient.getClient().create(APIInterface.class);
             //JsonObject convertedObject = new Gson().fromJson(prepareJSonStringToUpload(eroCode,sectionId,encodedTardata), JsonObject.class);
             String requestStr = prepareXMLStringToUpload(new GetIMEI_Number().getUniqueIMEIId(getApplicationContext()), encodedTardata);

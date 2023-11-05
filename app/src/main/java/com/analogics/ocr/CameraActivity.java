@@ -15,6 +15,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Base64OutputStream;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -32,6 +33,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
 import com.analogics.R;
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -51,7 +53,9 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -192,7 +196,7 @@ public class CameraActivity extends AppCompatActivity {
             MeterDetails.outputBase64 = null;
             ClipData clipData = ClipData.newPlainText("Google", imageBase64);
             ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);
-            String url = "https://todoapp-d9a67.el.r.appspot.com/fetchMeterNumber";
+            String url = "http://ec2-13-50-255-53.eu-north-1.compute.amazonaws.com:5000/read_meter_mobileapp";
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("capturedphoto", imageBase64);
 
@@ -201,28 +205,21 @@ public class CameraActivity extends AppCompatActivity {
                 try {
                     Intent intent = new Intent();
 
-                    String meterNumber = "";
-                    JSONObject response = jsonObjResp;
-                    if (response.has("meterNumber")) {
-                        JSONArray meterNumberArray = response.getJSONArray("meterNumber");
-                        ArrayList<Integer> meterNumbers = new ArrayList<>();
+                    String meterNumber  = "";
+                           // jsonObjResp.getJSONObject("data").getString("meterNumber");
 
-                        // Iterate through the JSON array and add each integer to the ArrayList
-                        for (int i = 0; i < meterNumberArray.length(); i++) {
-                            meterNumbers.add(meterNumberArray.getInt(i));
-                        }
-
-                        // Now, you have meterNumbers as an ArrayList<Integer>
-                        // Do whatever you need with the ArrayList here.
-                    } else {
-                        // "meterNumber" key not found in the JSON response
-                        // Handle this case accordingly.
+                     JSONArray meterNumberArray = jsonObjResp.getJSONArray("digits");
+                    // Toast.makeText(this, "length is "+meterNumberArray.length(), Toast.LENGTH_SHORT).show();
+                    for (int i = 0; i < meterNumberArray.length(); i++) {
+                        meterNumber = meterNumber + meterNumberArray.getInt(i);
                     }
-                            //jsonObjResp.getJSONObject("data").getString("meterNumber");
+                   // Toast.makeText(this, "number is "+meterNumber, Toast.LENGTH_SHORT).show();
+
+
                     if (meterNumber.equals("")) {
                         meterNumber = " ";
                     }
-                    MeterDetails.outputBase64 = jsonObjResp.getJSONObject("data").getString("outputImage");
+                    MeterDetails.outputBase64 = imageBase64;
                     String ocrType = getIntent().getExtras().getString("type");
                     String phase = getIntent().getExtras().getString("phase");
                     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
@@ -241,18 +238,27 @@ public class CameraActivity extends AppCompatActivity {
                         MeterDetails.RmdData = data;
                     }
 
-                    //   saveBase64ToImageFile(MeterDetails.outputBase64, serviceNumber + "_" + ocrType + "_" + meterNumber + "_" + phase + "_" + currentDateFormat + ".png");
+                     // saveBase64ToImageFile(MeterDetails.outputBase64, serviceNumber + "_" + ocrType + "_" + meterNumber + "_" + phase + "_" + currentDateFormat + ".png");
                     intent.putExtra("meterNumber", meterNumber);
                     setResult(1, intent);
                     finish();
                 } catch (Exception e) {
-                    Toast.makeText(getApplicationContext(), "Meter Number Not Found", Toast.LENGTH_SHORT).show();
+                    Log.d("fazilApp", e.toString());
+                    Toast.makeText(getApplicationContext(), "Failed "+e, Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }, volleyError -> {
+                Log.d("fazilApp", volleyError.toString());
                 Toast.makeText(getApplicationContext(), "Error 2 " + volleyError.toString(), Toast.LENGTH_SHORT).show();
                 finish();
-            });
+            }){
+                @Override
+                public Map<String, String> getHeaders()  {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("content-type", "application/json");
+                    return headers;
+                }
+            };
             jsonRequest.setRetryPolicy(new DefaultRetryPolicy(20000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             requestQueue.add(jsonRequest);
         } catch (Exception e) {
