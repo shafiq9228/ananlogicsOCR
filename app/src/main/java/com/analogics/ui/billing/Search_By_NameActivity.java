@@ -656,6 +656,10 @@ public class Search_By_NameActivity extends AppCompatActivity {
         textView.setTextSize(20);
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> {
+            reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+        });
 
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
         kwhPhotoBtn = Btn_photo;
@@ -663,29 +667,23 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
-        Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.Rmd);
-
-        });
+        Btn_photo.setOnClickListener(view -> openOcrCamera(false, MeterType.Rmd));
 
 
-        Btn_next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-                editText.clearFocus();
-                if (editText.getText().length() == 0) {
+        Btn_next.setOnClickListener(v -> {
+            dialog.dismiss();
+            editText.clearFocus();
+            if (editText.getText().length() == 0) {
+                rmdEntryFunction();
+
+            } else {
+                MeterDetails.RmdData.setManual(!MeterDetails.RmdData.getValue().equals(editText.getText().toString()));
+                inputDataVO.setRecordedMD(Float.parseFloat(editText.getText().toString()));
+                inputDataVO.setBilledRecordedMD(inputDataVO.getRecordedMD() * inputDataVO.getMf());
+                if (inputDataVO.getRecordedMD() > 500.00F) {
                     rmdEntryFunction();
-
                 } else {
-                    MeterDetails.RmdData.setManual(!MeterDetails.RmdData.getValue().equals(editText.getText().toString()));
-                    inputDataVO.setRecordedMD(Float.parseFloat(editText.getText().toString()));
-                    inputDataVO.setBilledRecordedMD(inputDataVO.getRecordedMD() * inputDataVO.getMf());
-                    if (inputDataVO.getRecordedMD() > 500.00F) {
-                        rmdEntryFunction();
-                    } else {
-                        export_KWHreading_entry();
-                    }
+                    export_KWHreading_entry();
                 }
             }
         });
@@ -723,7 +721,10 @@ public class Search_By_NameActivity extends AppCompatActivity {
         Button Btn_next = (Button) alertLayout.findViewById(R.id.Btn_next);
         Button Btn_back = (Button) alertLayout.findViewById(R.id.Btn_back);
         Button Btn_photo = (Button) alertLayout.findViewById(R.id.Btn_photo);
-
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> {
+            reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+        });
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
         kwhPhotoBtn = Btn_photo;
         kwhDialogEditText = editText;
@@ -731,9 +732,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
 
         numberOfTries = 0;
-        Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.Rmd);
-        });
+        Btn_photo.setOnClickListener(view -> openOcrCamera(false, MeterType.Rmd));
 
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(Search_By_NameActivity.this);
@@ -846,7 +845,10 @@ public class Search_By_NameActivity extends AppCompatActivity {
             Button backBtn = alertLayout.findViewById(R.id.Btn_back);
             Button nextBtn = alertLayout.findViewById(R.id.Btn_next);
             Button photoBtn = alertLayout.findViewById(R.id.Btn_photo);
-
+            Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+            reverseBtn.setOnClickListener(view -> {
+                reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+            });
             EditText editText = alertLayout.findViewById(R.id.Status);
             editText.setFocusable(false);
             editText.clearFocus();
@@ -856,6 +858,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
             alertDialog.setCancelable(false);
             alertDialog.setView(alertLayout);
             AlertDialog dialog = alertDialog.create();
+
             photoBtn.setOnClickListener(view -> openOcrCamera(true, MeterType.FullPhoto));
             nextBtn.setOnClickListener(v -> {
                 if (MeterDetails.fullImageBitmap != null) {
@@ -1228,6 +1231,15 @@ public class Search_By_NameActivity extends AppCompatActivity {
         intent.putExtra("serviceNumber", meterSerialNumber);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivityForResult(intent, 111);
+    }
+
+    public void reverseLayout(LinearLayout linearLayout) {
+        int childCount = linearLayout.getChildCount();
+        for (int i = 0; i < childCount / 2; i++) {
+            View temp = linearLayout.getChildAt(i);
+            linearLayout.removeViewAt(i);
+            linearLayout.addView(temp, childCount - 1 - i);
+        }
     }
 
     private class printBill extends AsyncTask<byte[], String, String> {
@@ -1937,7 +1949,8 @@ public class Search_By_NameActivity extends AppCompatActivity {
         Button Btn_back = (Button) alertLayout.findViewById(R.id.Btn_back);
         Button Btn_photo = (Button) alertLayout.findViewById(R.id.Btn_photo);
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
-
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> reverseLayout(alertLayout.findViewById(R.id.reverseLayout)));
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(Search_By_NameActivity.this);
         alertDialog.setCancelable(false);
@@ -2015,6 +2028,9 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogEditText = editText;
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
+
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> reverseLayout(alertLayout.findViewById(R.id.reverseLayout)));
 
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {

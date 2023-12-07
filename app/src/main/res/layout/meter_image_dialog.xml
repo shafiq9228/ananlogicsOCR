@@ -11,7 +11,7 @@
         android:layout_gravity="center_vertical|center_horizontal"
         android:background="@color/purple_900"
         android:gravity="center"
-        android:text="Take Full Meter Image"
+        android:text="Take Full Meter Image."
         android:textColor="@color/white"
         android:textStyle="bold" />
 
@@ -24,69 +24,88 @@
         android:padding="@dimen/dimen_12dp">
 
         <Button
+            android:id="@+id/reverseBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:backgroundTint="@color/purple"
+            android:text="Reverse"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            android:visibility="visible" />
+
+        <Button
             android:id="@+id/imageSheetBtn"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="end"
             android:backgroundTint="@color/purple"
-            android:text="View Ful Image"
+            android:text="View Full Image"
             android:textColor="@color/white"
             android:textSize="10sp"
             android:visibility="visible" />
 
     </FrameLayout>
 
-    <ImageView
-        android:id="@+id/Meter_Image_View"
-        android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:maxHeight="400dp"
-        android:visibility="gone" />
-
-    <EditText
-        android:id="@+id/Status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint=""
-        android:inputType="numberDecimal"
-        android:textColor="@color/purple_900"
-        android:visibility="gone"
-        android:textStyle="bold" />
-
 
     <LinearLayout
+        android:id="@+id/reverseLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/Btn_back"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/purple_900"
-            android:text="Back"
-            android:textColor="@color/white" />
+        <ImageView
+            android:id="@+id/Meter_Image_View"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:maxHeight="400dp"
+            android:visibility="gone" />
 
-        <Button
-            android:id="@+id/Btn_photo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/purple_900"
-            android:text="Photo"
-            android:textColor="@color/white" />
 
-        <Button
-            android:id="@+id/Btn_next"
-            android:layout_width="0dp"
+        <EditText
+            android:id="@+id/Status"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/purple_900"
-            android:text="Next"
-            android:textColor="@color/white" />
+            android:hint=""
+            android:inputType="numberDecimal"
+            android:textColor="@color/purple_900"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/Btn_back"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/purple_900"
+                android:text="Back"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/Btn_photo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/purple_900"
+                android:text="Photo"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/Btn_next"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/purple_900"
+                android:text="Next"
+                android:textColor="@color/white" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

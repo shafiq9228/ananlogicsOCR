@@ -33,7 +33,6 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
 import com.analogics.R;
-import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -41,7 +40,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -51,7 +49,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -196,30 +193,22 @@ public class CameraActivity extends AppCompatActivity {
             MeterDetails.outputBase64 = null;
             ClipData clipData = ClipData.newPlainText("Google", imageBase64);
             ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);
-            String url = "http://ec2-13-50-255-53.eu-north-1.compute.amazonaws.com:5000/read_meter_mobileapp";
+            String url ="https://todoapp-d9a67.el.r.appspot.com/fetchMeterNumber";
+           // "https://todoapp-d9a67.el.r.appspot.com/fetchMeterNumber"
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("capturedphoto", imageBase64);
+            jsonObject.put("img", imageBase64);
 
             RequestQueue requestQueue = Volley.newRequestQueue(this);
             JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject, jsonObjResp -> {
                 try {
                     Intent intent = new Intent();
-
-                    String meterNumber  = "";
-                           // jsonObjResp.getJSONObject("data").getString("meterNumber");
-
-                     JSONArray meterNumberArray = jsonObjResp.getJSONArray("digits");
-                    // Toast.makeText(this, "length is "+meterNumberArray.length(), Toast.LENGTH_SHORT).show();
-                    for (int i = 0; i < meterNumberArray.length(); i++) {
-                        meterNumber = meterNumber + meterNumberArray.getInt(i);
-                    }
-                   // Toast.makeText(this, "number is "+meterNumber, Toast.LENGTH_SHORT).show();
-
+                    String meterNumber = "";
+                    meterNumber = jsonObjResp.getJSONObject("data").getString("meterNumber");
 
                     if (meterNumber.equals("")) {
                         meterNumber = " ";
                     }
-                    MeterDetails.outputBase64 = imageBase64;
+                    MeterDetails.outputBase64 = jsonObjResp.getJSONObject("data").getString("outputImage");
                     String ocrType = getIntent().getExtras().getString("type");
                     String phase = getIntent().getExtras().getString("phase");
                     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
@@ -238,22 +227,22 @@ public class CameraActivity extends AppCompatActivity {
                         MeterDetails.RmdData = data;
                     }
 
-                     // saveBase64ToImageFile(MeterDetails.outputBase64, serviceNumber + "_" + ocrType + "_" + meterNumber + "_" + phase + "_" + currentDateFormat + ".png");
+                    // saveBase64ToImageFile(MeterDetails.outputBase64, serviceNumber + "_" + ocrType + "_" + meterNumber + "_" + phase + "_" + currentDateFormat + ".png");
                     intent.putExtra("meterNumber", meterNumber);
                     setResult(1, intent);
                     finish();
                 } catch (Exception e) {
                     Log.d("fazilApp", e.toString());
-                    Toast.makeText(getApplicationContext(), "Failed "+e, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Failed " + e, Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }, volleyError -> {
                 Log.d("fazilApp", volleyError.toString());
                 Toast.makeText(getApplicationContext(), "Error 2 " + volleyError.toString(), Toast.LENGTH_SHORT).show();
                 finish();
-            }){
+            }) {
                 @Override
-                public Map<String, String> getHeaders()  {
+                public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
                     headers.put("content-type", "application/json");
                     return headers;

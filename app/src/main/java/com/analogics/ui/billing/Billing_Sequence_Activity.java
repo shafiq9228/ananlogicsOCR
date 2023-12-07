@@ -1165,6 +1165,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> {
+            reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+        });
         Btn_photo.setOnClickListener(view -> {
             openOcrCamera(false, MeterType.Rmd);
         });
@@ -1221,6 +1225,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
 
         numberOfTries = 0;
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> {
+            reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+        });
         Btn_photo.setOnClickListener(view -> {
             openOcrCamera(false, MeterType.Rmd);
         });
@@ -1367,7 +1375,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
             alertDialog.setCancelable(false);
             alertDialog.setView(alertLayout);
             AlertDialog dialog = alertDialog.create();
-
+            Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+            reverseBtn.setOnClickListener(view -> {
+                reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+            });
             photoBtn.setOnClickListener(view -> {
                 openOcrCamera(true, MeterType.FullPhoto);
             });
@@ -2593,6 +2604,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> {
+            reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+        });
         Btn_photo.setOnClickListener(view -> {
             openOcrCamera(false, MeterType.Kvah);
         });
@@ -2649,7 +2664,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
 
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
-
+        Button reverseBtn = alertLayout.findViewById(R.id.reverseBtn);
+        reverseBtn.setOnClickListener(view -> {
+            reverseLayout(alertLayout.findViewById(R.id.reverseLayout));
+        });
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
             openOcrCamera(false, MeterType.kwh);
@@ -2771,6 +2789,15 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         intent.putExtra("serviceNumber", meterServiceNumber);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivityForResult(intent, 111);
+    }
+
+    public void reverseLayout(LinearLayout linearLayout) {
+        int childCount = linearLayout.getChildCount();
+        for (int i = 0; i < childCount / 2; i++) {
+            View temp = linearLayout.getChildAt(i);
+            linearLayout.removeViewAt(i);
+            linearLayout.addView(temp, childCount - 1 - i);
+        }
     }
 
 
