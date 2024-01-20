@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
 import com.analogics.irda.USB_Activity;
+import com.analogics.ocr.OfflineFolderActivity;
 import com.analogics.pojo.ConsumerDataVO;
 import com.analogics.ui.billing.Billing_SearchBy_Activity;
 import com.analogics.ui.billing.Billing_Sequence_Activity;
@@ -58,6 +60,7 @@ public class BillingMenuActivity extends AppCompatActivity {
     private WindowManager.LayoutParams layoutParams;
     private Dialog passwordDialog, areaDialog;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +70,10 @@ public class BillingMenuActivity extends AppCompatActivity {
     }
 
     public void ui_init() {
+        Button offlineLayout = findViewById(R.id.offlineBtn);
+        offlineLayout.setOnClickListener(view -> {
+            startActivity(new Intent(BillingMenuActivity.this, OfflineFolderActivity.class));
+        });
         configSharedPreferances = new Config_SharedPreferances();
         Btn_Search = findViewById(R.id.Btn_Search);
         Btn_Sequence = findViewById(R.id.Btn_Sequence);

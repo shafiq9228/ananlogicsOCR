@@ -31,6 +31,7 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.analogics.R;
 import com.android.volley.DefaultRetryPolicy;
@@ -136,9 +137,11 @@ public class CameraActivity extends AppCompatActivity {
                 MeterDetails.fullImageBitmap = savedBitmap;
                 File actualFile;
                 Bitmap croppedBitmap;
+                boolean isFromOfflineMode = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("isFromOfflineMode", false));
                 boolean isFromFullImage = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("disableOcr", false));
                 if (isFromFullImage) {
                     try {
+
                         actualFile = FileUtil.from(getApplicationContext(), savedUri);
                         File fullImage = new Compressor(getApplicationContext()).setQuality(60).setCompressFormat(Bitmap.CompressFormat.JPEG).setDestinationDirectoryPath(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).compressToFile(actualFile);
                         String phase = getIntent().getExtras().getString("phase");
@@ -148,6 +151,8 @@ public class CameraActivity extends AppCompatActivity {
                         MeterDetails.outputBase64 = convertImageFileToBase64(fullImage);
                         MeterDetails.FullImageData = new MeterData("", currentDateFormat, phase, MeterType.FullPhoto, false, MeterDetails.outputBase64);
                         Intent intent = new Intent();
+                        Uri croppedUri = bitmapToUri(savedBitmap);
+                        intent.putExtra("imageUri", croppedUri.toString());
                         setResult(1, intent);
                         finish();
                         return;
@@ -164,11 +169,18 @@ public class CameraActivity extends AppCompatActivity {
 
                 Uri croppedUri = bitmapToUri(croppedBitmap);
 
+                if (isFromOfflineMode){
+                    Intent intent = new Intent();
+                    intent.putExtra("imageUri", croppedUri.toString());
+                    setResult(1, intent);
+                    finish();
+                    return;
+                }
+
                 try {
                     actualFile = FileUtil.from(getApplicationContext(), croppedUri);
                     File compressImage = new Compressor(getApplicationContext()).setMaxWidth(1080).setMaxHeight(520).setQuality(60).setCompressFormat(Bitmap.CompressFormat.JPEG).setDestinationDirectoryPath(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).compressToFile(actualFile);
                     String croppedBase64 = convertImageFileToBase64(compressImage);
-
                     hitOCRApi(croppedBase64);
                 } catch (Exception e) {
                     runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Take Picture Catch: " + e, Toast.LENGTH_SHORT).show());
@@ -261,7 +273,7 @@ public class CameraActivity extends AppCompatActivity {
         try {
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-            return File.createTempFile("JPED_" + timestamp + "_", ".jpg", storageDir);
+            return File.createTempFile("JPEG_" + timestamp + "_", ".jpg", storageDir);
         } catch (Exception e) {
             return null;
         }

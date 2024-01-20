@@ -164,6 +164,24 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/offlineBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:visibility="gone"
+                android:paddingHorizontal="@dimen/dimen_12dp"
+                android:layout_marginLeft="@dimen/dimen_5dp"
+                android:layout_marginRight="@dimen/dimen_5dp"
+                android:layout_weight="1"
+                android:background="@drawable/btn_background"
+                android:backgroundTint="@color/purple_900"
+                android:stateListAnimator="@drawable/state_list_animator_z"
+               android:text="offline Flow"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="50dp"

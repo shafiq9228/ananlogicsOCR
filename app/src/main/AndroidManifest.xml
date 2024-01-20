@@ -77,6 +77,15 @@
         tools:ignore="GoogleAppIndexingWarning"
         tools:targetApi="31">
         <activity
+            android:name=".ocr.OfflineImagesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ocr.OfflineFolderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ocr.OfflineOcrInsertActivity"
+            android:exported="false" />
+        <activity
             android:name=".ocr.CameraActivity"
             android:exported="false" />
         <activity

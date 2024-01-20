@@ -21,11 +21,11 @@ public class FileOperations {
 	String _IN_FILEPATH = sdcardPath+"TSSPDCL_IN/";
 	String _OUT_FILEPATH = sdcardPath+"TSSPDCL_OUT/";
 	String _TEMP_FILEPATH = sdcardPath+"TSSPDCL_TEMP/";
-	String _METER_IMAGES = sdcardPath+"TSSPDCL_METER_IMAGES";
+ 	String _METER_IMAGES = sdcardPath+"TSSPDCL_METER_IMAGES";
 	String _IN_FILEPATH_1 = sdcardPath+"TSSPDCL/server/in/";
 	String _OUT_FILEPATH_1 = sdcardPath+"TSSPDCL/server/out/";
 	String _TEMP_FILEPATH_1 = sdcardPath+"TSSPDCL/server/temp/";
-
+	String _OFFLINE_PATH = sdcardPath+"TSSPDCL_OFFLINE_IMAGES";
 	String DB_PATH = sdcardPath;
 
 	
@@ -45,6 +45,10 @@ public class FileOperations {
 		File DB_dir = new File(DB_PATH);
 		if(!(DB_dir.exists())) {
 			DB_dir.mkdir();
+		}
+		File DB_dir_OFFLINE = new File(_OFFLINE_PATH);
+		if(!(DB_dir_OFFLINE.exists())) {
+			DB_dir_OFFLINE.mkdir();
 		}
 		File in_dir = new File(_IN_FILEPATH);
 		if(!(in_dir.exists())) {
