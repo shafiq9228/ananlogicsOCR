@@ -77,31 +77,33 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_weight="1"
-            android:background="@drawable/background"
+            android:background="@color/white"
             android:gravity="center"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="bottom|center_horizontal"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:text="Powered by : Analogics Tech India Ltd."
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+
+<!--            <TextView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="bottom|center_horizontal"-->
+<!--                android:marqueeRepeatLimit="marquee_forever"-->
+<!--                android:text="Powered by : Analogics Tech India Ltd."-->
+<!--                android:textColor="@color/white"-->
+<!--                android:textSize="15sp"-->
+<!--                android:textStyle="bold" />-->
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="5dp"
-                android:gravity="bottom|center_horizontal"
+                android:textColor="@color/purple_900"
                 android:marqueeRepeatLimit="marquee_forever"
-                android:text="@string/version"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:background="@color/white"
+                android:text="@string/version"/>
         </LinearLayout>
     </RelativeLayout>
 
@@ -149,8 +151,11 @@
                     android:drawableTop="@drawable/search"
                     android:text="@string/Search"
                     android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
 
                 <Button
@@ -162,8 +167,11 @@
                     android:drawableTop="@drawable/sequence"
                     android:text="@string/Sequence"
                     android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
                 <Button
                     android:id="@+id/Btn_Search_By_Name"
@@ -187,8 +195,11 @@
                     android:drawableTop="@drawable/sasa"
                     android:text="@string/sasa_bill_print"
                     android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
 
             </LinearLayout>
@@ -210,8 +221,11 @@
                     android:drawableTop="@drawable/ir"
                     android:text="IR/IrDA"
                     android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
 
                 <Button
@@ -223,8 +237,11 @@
                     android:drawableTop="@drawable/delete"
                     android:text="Delete Billed"
                     android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
             </LinearLayout>
 
@@ -245,8 +262,27 @@
                     android:padding="10dp"
                     android:text="@string/DownloadData"
                     android:textColor="@color/black"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
+
+                <Button
+                    android:id="@+id/btn_serverPush"
+                    android:layout_width="@dimen/dimen_35dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="#00FFFFFF"
+                    android:drawableTop="@drawable/bulkupload_icon_75x75"
+                    android:padding="10dp"
+                    android:text="@string/ServerPush"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
                 <Button
                     android:id="@+id/Btn_PhotoBilling"

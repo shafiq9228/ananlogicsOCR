@@ -1,10 +1,5 @@
 package com.analogics.ui.menu;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
@@ -24,13 +19,17 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.analogics.R;
 import com.analogics.aanil.apcpdcl_billing_app.MainSplashScreen;
 import com.analogics.appUtils.Config_SharedPreferances;
 import com.analogics.utils.CommonFunctions;
 import com.analogics.utils.GPSCoordinates;
 import com.analogics.utils.GetIMEI_Number;
-import com.analogics.webservice.APIClient;
 import com.analogics.webservice.APIInterface;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -46,15 +45,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONObject;
-
-
-import java.util.concurrent.Executors;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
 
 public class RegistrationActivity extends AppCompatActivity {
 
@@ -240,7 +230,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void setDeviceId() {
-        if (CommonFunctions.isMachineOrMobileDevice().equals("tainyu")) {
+        if (CommonFunctions.isMachineOrMobileDevice().equals("tianyu")) {
             deviceId = (GetIMEI_Number.getUniqueIMEIId(RegistrationActivity.this)).toUpperCase();
         } else {
             deviceId = "5FC9024647003238";

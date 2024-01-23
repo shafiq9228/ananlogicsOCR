@@ -6,6 +6,53 @@ public class inputDataVO implements Serializable {
     private String datasd;
     private String ip;
 
+    private String printHead;
+
+    public String getPrintHead() {
+        return printHead;
+    }
+
+    public void setPrintHead(String printHead) {
+        this.printHead = printHead;
+    }
+
+    public String getPrintFoot() {
+        return printFoot;
+    }
+
+    public void setPrintFoot(String printFoot) {
+        this.printFoot = printFoot;
+    }
+
+    public String getPrintBody() {
+        return printBody;
+    }
+
+    public void setPrintBody(String printBody) {
+        this.printBody = printBody;
+    }
+
+    public String getPrintBoldText1() {
+        return printBoldText1;
+    }
+
+    public void setPrintBoldText1(String printBoldText1) {
+        this.printBoldText1 = printBoldText1;
+    }
+
+    public String getPrintBoldText2() {
+        return printBoldText2;
+    }
+
+    public void setPrintBoldText2(String printBoldText2) {
+        this.printBoldText2 = printBoldText2;
+    }
+
+    private String printFoot;
+    private String printBody;
+    private String printBoldText1;
+    private String printBoldText2;
+
     public float getOldReadingKwhTemp() {
         return oldReadingKwhTemp;
     }
@@ -1024,11 +1071,15 @@ public class inputDataVO implements Serializable {
     public float getEdchg() {
         return edchg;
     }
-
+    public float getGreenchg() { //301023 prasanth
+        return greenenergychg;
+    }
     public void setEdchg(float edchg) {
         this.edchg = edchg;
     }
-
+    public void setgreenchg(float greenenergychg) {  //301023 prasanth
+        this.greenenergychg = greenenergychg;
+    }
     public float getFixchg() {
         return fixchg;
     }
@@ -1725,7 +1776,17 @@ public class inputDataVO implements Serializable {
         this.isMultipleBilledFlag = isMultipleBilledFlag;
     }
 
+    String abnormalFlag;
     int current_record_value;
+
+    public String getAbnormalFlag() {
+        return abnormalFlag;
+    }
+
+    public void setAbnormalFlag(String abnormalFlag) {
+        this.abnormalFlag = abnormalFlag;
+    }
+
     int total_seq_count;
     String loc;
     String loc1;
@@ -1834,6 +1895,7 @@ public class inputDataVO implements Serializable {
     float engchg;
     float cuschg;
     float edchg;
+    float greenenergychg; //301023 prasanth
     float fixchg;
     float capchg;
     float pamount;

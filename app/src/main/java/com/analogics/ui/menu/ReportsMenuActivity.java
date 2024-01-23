@@ -3,31 +3,25 @@ package com.analogics.ui.menu;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.analogics.DBAdapter.ReportsDAO;
-import com.analogics.Printer.PrinterLib;
 import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
 import com.analogics.pojo.ReportsVO;
-import com.analogics.thermalprinter.AnalogicsThermalPrinter;
 import com.analogics.utils.AlertMessage;
-import com.analogics.utils.CommonFunctions;
 import com.analogics.utils.DateUtil;
 import com.analogics.utils.FileOperations;
 import com.whty.smartpos.tysmartposapi.ITYSmartPosApi;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConfig;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConstant;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterInitListener;
-
-import java.nio.charset.StandardCharsets;
 
 
 public class ReportsMenuActivity extends AppCompatActivity {
@@ -202,11 +196,11 @@ public class ReportsMenuActivity extends AppCompatActivity {
                 catagoryReport += "CATAGORY VII  : " + (count7 - Ucount7) + "\n";
                 catagoryReport += "CATAGORY VIII : " + (count8 - Ucount8) + "\n";
                 catagoryReport += "CATAGORY XI   : " + (count9 - Ucount9) + "\n";
-
                 catagoryReport += "---------------------------\n\n\n\n";
 
                 try {
                     int status = tyApi.getPrinterStatus();
+                    tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
                     if(status == PrinterConstant.PrinterStatus.STATUS_NORMAL){
                         int ret = tyApi.printText(catagoryReport);
                         if(ret == PrinterConstant.PrintResult.SUCCESS)

@@ -1,20 +1,15 @@
 package com.analogics.ui.menu;
 
+import android.app.ProgressDialog;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
-
-import com.analogics.Printer.PrinterLib;
 import com.analogics.R;
-import com.analogics.thermalAPI.RP_Printer_2inch_prof_ThermalAPI;
 import com.analogics.utils.DateUtil;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -25,8 +20,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.gson.JsonParser;
 import com.whty.smartpos.tysmartposapi.ITYSmartPosApi;
+import com.whty.smartpos.tysmartposapi.modules.printer.PrintElement;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConfig;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConstant;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterInitListener;
@@ -34,7 +29,6 @@ import com.whty.smartpos.tysmartposapi.modules.printer.PrinterInitListener;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 
@@ -209,9 +203,11 @@ public class SasaBillPrintActivity extends AppCompatActivity {
         String pnlunits = "";
         String result = "";
         try {
-            result = "      T S S P D C L\n";
-            result += "       ELECTRICITY\n";
-            result += "     BILL-CUM NOTICE\n";
+//            result = "      T S S P D C L\n";
+//            result += "       ELECTRICITY\n";
+//            result += "     BILL-CUM NOTICE\n";
+            result ="T S S P D C L\n";
+            result +="ELECTRICITY BILL-CUM NOTICE\n";
             result += "-------------------------\n";
             String str_date = new DateUtil().getDate();
             String str_time = new DateUtil().getTime();
@@ -325,7 +321,23 @@ public class SasaBillPrintActivity extends AppCompatActivity {
         try {
             int status = tyApi.getPrinterStatus();
             if (status == PrinterConstant.PrinterStatus.STATUS_NORMAL) {
-                int ret = tyApi.printText(printingData);
+                {
+                    tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                    tyApi.setLineSpace(1);
+                    String[] boldText = printingData.split("\n");
+                    for(int i=0;i<boldText.length;i++){
+                        if(StringUtils.containsIgnoreCase(boldText[i], "SC NO:") ||
+                                StringUtils.containsIgnoreCase(boldText[i], "USCNO:") ||
+                                StringUtils.containsIgnoreCase(boldText[i], "TOTAL AMOUNT")){
+                            tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+                        }else{
+                            tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_CENTER));
+                        }
+                    }
+                    tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                    tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                    tyApi.startPrintElement();
+                }
             }
         } catch (Exception ex) {
 

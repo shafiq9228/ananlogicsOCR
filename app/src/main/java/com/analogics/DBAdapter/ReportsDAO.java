@@ -5,6 +5,14 @@ import android.database.Cursor;
 
 import com.analogics.pojo.ReportsVO;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 public class ReportsDAO extends Activity {
     ReportsVO reportsVO=new ReportsVO();
     String totalServiceCount="0";
@@ -596,5 +604,83 @@ public class ReportsDAO extends Activity {
             e.printStackTrace();
         }
         return reportsVO;
+    }
+    public String getOutputRecordsBackup(){
+        String data = "";
+        DBAdapter dbAdapter=null;
+        int retVal=0;
+        try{
+            StringBuilder sb = new StringBuilder();
+            dbAdapter = DBAdapter.getDBAdapterInstance(this);
+            dbAdapter.openDataBase();
+            String countQuery;
+            Cursor cursor;
+            countQuery = "select * from OUTPUT_MASTER2";
+            cursor = dbAdapter.selectRecordsFromDB(countQuery, null);
+            int columnCount = cursor.getColumnCount();
+
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                sb.append(prepareColumnData(cursor));
+                sb.append("\n");
+                while (cursor.moveToNext()) {
+                    sb.append(prepareColumnData(cursor));
+                    sb.append("\n");
+                }
+            }
+            data = sb.toString();
+            dbAdapter.close();
+
+        }
+        catch(Exception e)
+        {
+            dbAdapter.close();
+            e.printStackTrace();
+        }
+        return data;
+    }
+    private String prepareColumnData(Cursor cursor){
+        String output = "";
+        try{
+            StringBuilder sb = new StringBuilder();
+            int columnCount = cursor.getColumnCount();
+            for(int i = 0;i<columnCount;i++){
+                sb.append(cursor.getString(i));
+                sb.append("|");
+            }
+            output = sb.toString();
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        return output;
+    }
+
+    public static void zipFile(String folderPath) throws IOException {
+
+        String zipPath = folderPath+ File.separator+"Zip_Out.zip";
+        FileOutputStream fileOutputStream = new FileOutputStream(zipPath);
+        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+        File directoryToZip = new File(folderPath);
+        zipFormat(directoryToZip, directoryToZip.getName(),zipOutputStream );
+        zipOutputStream.close();
+        fileOutputStream.close();
+    }
+    private static void zipFormat(File directoryToZip, String parentFolder, ZipOutputStream zipOutputStream) throws IOException, FileNotFoundException {
+        for (String fileName: directoryToZip.list()){
+            File file = new File(directoryToZip,fileName);
+            if (file.isDirectory()){
+                zipFormat(file,parentFolder+ File.separator+file.getName(),zipOutputStream);
+                continue;
+            }
+            FileInputStream fileInputStream = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(parentFolder+File.separator+file.getName());
+            zipOutputStream.putNextEntry(zipEntry);
+            byte[] bytes= new byte[1024];
+            int length;
+            while((length=fileInputStream.read(bytes))>=0){
+                zipOutputStream.write(bytes,0,length);
+            }
+            fileInputStream.close();
+        }
     }
 }

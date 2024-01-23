@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.analogics.DBAdapter.ReportsDAO;
 import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
 import com.analogics.irda.USB_Activity;
@@ -23,7 +24,10 @@ import com.analogics.ui.billing.Billing_Sequence_Activity;
 import com.analogics.ui.billing.DeleteData;
 import com.analogics.ui.billing.Search_By_NameActivity;
 import com.analogics.utils.CommonFunctions;
+import com.analogics.utils.DateUtil;
 import com.analogics.utils.DownloadData;
+import com.analogics.utils.FileOperations;
+import com.analogics.utils.GetIMEI_Number;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -36,7 +40,6 @@ import com.google.android.material.textfield.TextInputLayout;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 
@@ -49,6 +52,7 @@ public class BillingMenuActivity extends AppCompatActivity {
     Button Btn_IRDA;
     Button Btn_home;
     Button Btn_PhotoBilling;
+    Button Btn_server_Push;
     private Config_SharedPreferances configSharedPreferances;
     Button Btn_SahasraBillPay, btnSasaBillPrint, btnDeleteBilledData, btnVerifyPass, btnBillBilledData;
     Button btn_append, btn_download;
@@ -78,7 +82,7 @@ public class BillingMenuActivity extends AppCompatActivity {
         btnSasaBillPrint = findViewById(R.id.btnSasaBillPrint);
         btnDeleteBilledData = findViewById(R.id.btn_erase_billed_data);
         btnBillBilledData = findViewById(R.id.btn_append_billed_data);
-
+        Btn_server_Push = findViewById(R.id.btn_serverPush);
         passwordDialog = new Dialog(this);
         btn_append = findViewById(R.id.btn_append);
         btn_download = findViewById(R.id.btn_download);
@@ -161,7 +165,49 @@ public class BillingMenuActivity extends AppCompatActivity {
         btnBillBilledData.setOnClickListener(v -> {
             downloadDataDialog();
         });
+        Btn_server_Push.setOnClickListener(v ->{
+            serverPush();
+        });
+    }
 
+    private void serverPush() {
+        passwordDialog.setContentView(R.layout.custom_dialog_layout);
+        passwordDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        tilPassword = passwordDialog.findViewById(R.id.tnl_password);
+        etPassword = passwordDialog.findViewById(R.id.et_password);
+        btnVerifyPass = passwordDialog.findViewById(R.id.btn_verify_pass);
+        if (!isFinishing()){
+            passwordDialog.show();
+            btnVerifyPass.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String password1 = Objects.requireNonNull(etPassword.getText()).toString().trim();
+                    if (password1.equals("tsspdcl")) {
+                        tilPassword.setError(null);
+                        tilPassword.setErrorEnabled(false);
+                        passwordDialog.dismiss();
+                        passwordDialog.cancel();
+                        try {
+                            String backupData = new ReportsDAO().getOutputRecordsBackup();
+                            String machineId = GetIMEI_Number.getUniqueIMEIId(BillingMenuActivity.this);
+                            new FileOperations().writeToFile("", backupData, "TSSPDCL_DUMP_" + machineId + "_" + new DateUtil().getDatetimeStamp() + ".txt", BillingMenuActivity.this);
+//                             String path = "/Android/TSSPDCL_METER_IMAGES/F6006526/rmd___Manual.png";
+//                             ReportsDAO.zipFile(path);
+                            Toast.makeText(BillingMenuActivity.this, "Done", Toast.LENGTH_SHORT).show();
+                        }catch (Exception ex){
+                            Log.e("error",ex.getMessage());
+                            ex.printStackTrace();
+                            Toast.makeText(BillingMenuActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                        }
+                    }else {
+                        tilPassword.setErrorEnabled(true);
+                        tilPassword.setError("Wrong Password");
+                        Toast.makeText(BillingMenuActivity.this, "Wrong password", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+        }
     }
 
     private void downloadDataDialog() {

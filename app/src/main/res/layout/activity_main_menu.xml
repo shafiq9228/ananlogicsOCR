@@ -80,33 +80,42 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_weight="1"
-            android:background="@color/purple_900"
+            android:background="@color/white"
             android:gravity="center"
             android:orientation="vertical">
 
+<!--            <ImageView-->
+<!--                android:layout_width="@dimen/dimen_200dp"-->
+<!--                android:layout_height="@dimen/dimen_50dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:layout_marginBottom="-5dp"-->
+<!--                android:gravity="center"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:background="@drawable/atillogo"/>-->
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="bottom|center_horizontal"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:text="Powered by : Analogics Tech India Ltd."
-                android:textColor="#D1FFFFFF"
-                android:textStyle="bold"
-                android:background="@color/purple_900"
-                android:textSize="15sp" />
+<!--            <TextView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:gravity="bottom|center_horizontal"-->
+<!--                android:marqueeRepeatLimit="marquee_forever"-->
+<!--                android:text="Powered by : Analogics Tech India Ltd."-->
+<!--                android:textColor="#D1FFFFFF"-->
+<!--                android:textStyle="bold"-->
+<!--                android:background="@color/purple_900"-->
+<!--                android:textSize="15sp" />-->
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="5dp"
-                android:gravity="bottom|center_horizontal"
+                android:textColor="@color/purple_900"
                 android:marqueeRepeatLimit="marquee_forever"
-                android:text="@string/version"
-                android:textColor="#D1FFFFFF"
+                android:textSize="10sp"
                 android:textStyle="bold"
-                android:background="@color/purple_900"
-                android:textSize="15sp" />
+                android:layout_gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:background="@color/white"
+                android:text="@string/version"/>
 
         </LinearLayout>
     </RelativeLayout>
@@ -156,7 +165,10 @@
                     android:text="@string/Billing"
                     android:textColor="@color/black"
                     android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
 
                 <Button
@@ -170,7 +182,10 @@
                     android:text="@string/Reports"
                     android:textColor="@color/black"
                     android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"/>
 
                 <Button
                     android:id="@+id/Btn_DownloadData"
@@ -244,7 +259,8 @@
                     android:text="@string/download_apk"
                     android:textColor="@color/black"
                     android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:visibility="gone"/>
 
 
                 <!--                <Button-->

@@ -80,25 +80,27 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#D1FFFFFF"
-                android:marqueeRepeatLimit="marquee_forever"
-                android:textSize="15sp"
-                android:gravity="bottom|center_horizontal"
-                android:textStyle="bold"
-                android:text="Powered by : Analogics Tech India Ltd."/>
+<!--            <TextView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:textColor="#D1FFFFFF"-->
+<!--                android:marqueeRepeatLimit="marquee_forever"-->
+<!--                android:textSize="15sp"-->
+<!--                android:gravity="bottom|center_horizontal"-->
+<!--                android:textStyle="bold"-->
+<!--                android:text="Powered by : Analogics Tech India Ltd."/>-->
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="5dp"
-                android:textColor="#D1FFFFFF"
+                android:textColor="@color/purple_900"
                 android:marqueeRepeatLimit="marquee_forever"
-                android:textSize="15sp"
-                android:gravity="bottom|center_horizontal"
+                android:textSize="10sp"
                 android:textStyle="bold"
+                android:layout_gravity="center"
+                android:gravity="bottom|center_horizontal"
+                android:background="@color/white"
                 android:text="@string/version"/>
 
         </LinearLayout>
@@ -145,7 +147,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_700"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -176,7 +178,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -206,7 +208,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -236,7 +238,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -266,7 +268,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -353,7 +355,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -373,7 +375,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -394,7 +396,7 @@
                         android:paddingBottom="2dp"
                         android:textColor="@color/purple_900"
                         android:textCursorDrawable="@drawable/bg_input_cursor"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -405,8 +407,7 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/Btn_Ok"
                     android:layout_width="150dp"
                     android:layout_height="45dp"
@@ -419,9 +420,9 @@
                     android:text="@string/OK"
                     android:textColor="@color/white"
                     android:textSize="18sp"
-                    android:textStyle="bold"></Button>
+                    android:textStyle="bold"/>
 
-            </LinearLayout>
+                      </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

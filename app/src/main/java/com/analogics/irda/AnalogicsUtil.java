@@ -1,7 +1,5 @@
 package com.analogics.irda;
 
-import android.util.Log;
-
 import com.analogics.ui.settings.UsbService;
 
 import org.apache.commons.io.FileUtils;
@@ -21,7 +19,7 @@ public class AnalogicsUtil {
         try{
             if (usbService != null) { // if UsbService was correctly binded, Send data
                 usbService.write(buffer1);
-                Thread.sleep(1000);
+                Thread.sleep(10);
             }
         }catch(Exception ex){
 
@@ -37,7 +35,7 @@ public class AnalogicsUtil {
         try{
             if (usbService != null) { // if UsbService was correctly binded, Send data
                 usbService.write(buffer1);
-                Thread.sleep(1000);
+                Thread.sleep(10);
             }
         }catch(Exception ex){
 
@@ -69,7 +67,7 @@ public class AnalogicsUtil {
         try{
             if (usbService != null) { // if UsbService was correctly binded, Send data
                 usbService.write(buffer1);
-                Thread.sleep(1000);
+                Thread.sleep(10);
             }
         }catch(Exception ex){
 

@@ -33,25 +33,29 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * *
+ *
+ **
  * check the any offline records available if records available get the record details and update to the server.
+ *
+ *
  */
 public class OfflineServiceUpload extends Service {
 
     APIInterface apiInterface;
+
     Timer myTimer;
     MyTimerTask myTask;
 
     Upload_dataVO upload_dataVO = new Upload_dataVO();
 
     JSONObject jsonObj = null;
-    String simnum = null;
+    String simnum=null;
 
 
-    static String sdcardPath = Environment.getExternalStorageDirectory() + "/Android/";
+    static String sdcardPath= Environment.getExternalStorageDirectory()+"/Android/";
 
-    String _OUT_FILEPATH = sdcardPath + "TSSPDCL_OUT/";
-    String _TEMP_FILEPATH = sdcardPath + "TSSPDCL_TEMP/";
+    String _OUT_FILEPATH = sdcardPath+"TSSPDCL_OUT/";
+    String _TEMP_FILEPATH = sdcardPath+"TSSPDCL_TEMP/";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -67,13 +71,13 @@ public class OfflineServiceUpload extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-    Log.d("FazilApp", "HELLO IM RUNNING");
-        try {
+        try
+        {
             myTimer = new Timer();
             myTask = new MyTimerTask();
-
             myTimer.schedule(myTask, 2000, 20000);
-        } catch (Exception e) {
+        }catch(Exception e)
+        {
             e.printStackTrace();
         }
 
@@ -97,12 +101,13 @@ public class OfflineServiceUpload extends Service {
         @SuppressLint("NewApi")
         public void run() {
 
-            try {
+            try
+            {
 
-                GPRSTest gPRSTest = new GPRSTest(OfflineServiceUpload.this);
+                GPRSTest gPRSTest = new GPRSTest(
+                        OfflineServiceUpload.this);
                 DBAdapter dbAdapterBilling = DBAdapter.getDBAdapterInstance(OfflineServiceUpload.this);
 
-                Log.d("myMeterApp", gPRSTest.gprsTest() + "");
                 if (gPRSTest.gprsTest()) {
 
                     //	if (dbAdapterBilling.checkdbopen())
@@ -223,12 +228,13 @@ public class OfflineServiceUpload extends Service {
 						    dbAdapterBilling.close();
 						}}else{dbAdapterBilling.close();}*/
 
-                        upload("12345", "9865");
+                        upload("12345","9865");
                     }
                     //  else{dbAdapterBilling.close();}
                 }
-            } catch (Exception e) {
-                Log.d("myMeterApp", e.toString());
+            }catch(Exception e)
+            {
+
                 e.printStackTrace();
             }
 
@@ -237,12 +243,29 @@ public class OfflineServiceUpload extends Service {
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public String getfile(File dir) {
         File listFile[] = dir.listFiles();
         if (listFile != null && listFile.length > 0) {
             for (int i = 0; i < listFile.length; i++) {
                 {
-                    return listFile[0].getAbsoluteFile().getName();
+                    return 		listFile[0].getAbsoluteFile().getName();
                 }
             }
         }
@@ -250,7 +273,9 @@ public class OfflineServiceUpload extends Service {
     }
 
 
-    public void upload(String eroCode, String sectionId) {
+
+
+    public void upload(String eroCode,String sectionId){
         try {
             FileOperations FO = new FileOperations();
             FO.checkDirectroies();
@@ -259,24 +284,29 @@ public class OfflineServiceUpload extends Service {
 
             String currentdateTime = sdf.format(curDate);
             File source = new File(_OUT_FILEPATH);
-            String filePath = getfile(source);
-            System.out.println(" Timer FILE>>" + _OUT_FILEPATH + filePath);
+            String filePath=    getfile(source);
+            System.out.println(" Timer FILE>>"+_OUT_FILEPATH+filePath);
+
+
+
 
             TarGZFileUtil tar = new TarGZFileUtil();
-            String out_sourceFileName = _OUT_FILEPATH + filePath;
-            String encodedTardata = tar.tarGZ_BillingSingleFile("TSSPDCL_BILLING_" + currentdateTime, out_sourceFileName);
-            System.out.println(" Tar FILE>>" + encodedTardata);
+            String out_sourceFileName=_OUT_FILEPATH+filePath;
+            String encodedTardata = tar.tarGZ_BillingSingleFile("TSSPDCL_BILLING_" + currentdateTime,out_sourceFileName);
+            System.out.println(" Tar FILE>>"+encodedTardata);
 
             // *******************************************************
 
             String response = "";
-            if (!encodedTardata.equalsIgnoreCase("FAIL")) {
-                //  response = new WebServiceUtil().uploadBillDetails_WebseviceClient( encodedTardata);
-                System.out.println(" Tar Success>>" + out_sourceFileName);
-                UploadBillingData(eroCode, sectionId, encodedTardata, out_sourceFileName);
 
-            } else {
-                System.out.println(" FAIL FILE>>" + _OUT_FILEPATH + filePath);
+
+            if(!encodedTardata.equalsIgnoreCase("FAIL")) {
+                //  response = new WebServiceUtil().uploadBillDetails_WebseviceClient( encodedTardata);
+                System.out.println(" Tar Success>>"+out_sourceFileName);
+                UploadBillingData(eroCode,sectionId,encodedTardata,out_sourceFileName);
+
+            }else{
+                System.out.println(" FAIL FILE>>"+_OUT_FILEPATH+filePath);
             }
 
         } catch (Exception e) {
@@ -286,29 +316,12 @@ public class OfflineServiceUpload extends Service {
     }
 
 
-    public void UploadBillingData(String eroCode, String sectionId, String encodedTardata, String out_sourceFileName) {
+    public void UploadBillingData(String eroCode,String sectionId,String encodedTardata,String out_sourceFileName) {
 
         try {
-
-            if (true) return;
-            Log.d("myMeterApp", encodedTardata);
             apiInterface = APIClient.getClient().create(APIInterface.class);
-            //JsonObject convertedObject = new Gson().fromJson(prepareJSonStringToUpload(eroCode,sectionId,encodedTardata), JsonObject.class);
-            String requestStr = prepareXMLStringToUpload(new GetIMEI_Number().getUniqueIMEIId(getApplicationContext()), encodedTardata);
+            String requestStr=prepareXMLStringToUpload(new GetIMEI_Number().getUniqueIMEIId(getApplicationContext()),encodedTardata);
             Call<ResponseBody> call4 = apiInterface.uploadXMLdata(requestStr);
-
-	/*		final ProgressDialog progressDoalog;
-			progressDoalog = new ProgressDialog(OfflineServiceUpload.this);
-			progressDoalog.setTitle("Uploading Billing data to the server");
-			progressDoalog.setMessage("Please wait....");
-			progressDoalog.setCancelable(false);
-			progressDoalog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-
-			// show it
-			progressDoalog.show();*/
-            //
-            //  progressDoalog.dismiss();
-
             call4.enqueue(new Callback<ResponseBody>() {
 
                 @Override
@@ -317,16 +330,19 @@ public class OfflineServiceUpload extends Service {
                     if (response.isSuccessful()) {
 
 
-                        String responseStr = "";
+                        String responseStr="";
                         try {
 
-                            responseStr = response.body().string();
+                            responseStr=response.body().string();
                             System.out.println("responseStr>>>" + responseStr);
 
 
+
                             if (response.body() != null) {
+
                                 System.out.println(">>>" + responseStr);
-                                if (responseStr.contains("@ACK@")) {
+                                if(responseStr.contains("@ACK@"))
+                                {
                                     File outfile = new File(out_sourceFileName);
                                     outfile.delete();
 
@@ -359,8 +375,9 @@ public class OfflineServiceUpload extends Service {
 
                                         initialValues.put("UploadFlag", "Y");
 
-                                        String[] strArray = {upload_dataVO.getUsc_code()};
-                                        long n = dbAdapter.updateRecordsInDB("upload_data", initialValues, "usc_code=?", strArray);
+                                        String[] strArray = { upload_dataVO.getUsc_code()};
+                                        long n = dbAdapter.updateRecordsInDB("upload_data",
+                                                initialValues, "usc_code=?", strArray);
 
                                         dbAdapter.close();
 /*
@@ -378,7 +395,7 @@ public class OfflineServiceUpload extends Service {
 */
 
 
-                                        upload_dataVO = new Upload_dataVO();
+                                        upload_dataVO=new Upload_dataVO();
 
                                     } else {
                                         //	Toast.makeText(Online_CommunicationMenuActivity.this, "Masterdownload failed", Toast.LENGTH_LONG).show();
@@ -394,8 +411,7 @@ public class OfflineServiceUpload extends Service {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                    }
-                }
+                    }}
 
 
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
@@ -413,20 +429,27 @@ public class OfflineServiceUpload extends Service {
     }
 
 
-    public String prepareXMLStringToUpload(String machineID, String data) {
-        String Request = "";
+
+    public  String prepareXMLStringToUpload(String machineID,String data) {
+        String Request="";
         try {
-            Request = "<machineId>" + machineID + "</machineId>\n" + "<command>UPLOAD</command><data>" + data + "</data>";
+
+            Request="<machineId>"+machineID+"</machineId>\n" +
+                    "<command>UPLOAD</command><data>"+data+"</data>";
+
 //			System.out.println("Download Request>>>"+jsonObj.toString());
             return Request;
+
         } catch (Exception ex) {
+
             ex.printStackTrace();
             return Request;
+
         }
         // return jsonObj.toString();
     }
 
-    public String prepareJSonStringToUpload(String eroCodeValue, String sectionIdValue, String data) {
+    public  String prepareJSonStringToUpload(String eroCodeValue,String sectionIdValue,String data) {
         JSONObject jsonObj = null;
         try {
 
@@ -434,13 +457,13 @@ public class OfflineServiceUpload extends Service {
 
 //			REQ ::{"command":"upload","data":"H4sIAAAAAAAAA+2TQU7DQAxFc5R/AaL/Z8ZJw66CJaBKHCAC0XWl0iIq+fAsMmmbFioEVbvJW4wdy7Hj+c509jy7v3toRbaiWpIhqmVDBaqRaWKxXH2uir9DklXFgh0FGWKS9c9KZKGYZDGpohWUVVUqwH/0/DXr99XLEiiWi8XJGecf8+XmdfG2ucRHXY6nKQC4WQiR7NT3zgAAHIDqFErSAQDgzy7l/eLkcF/ihO2MU96tg9NP9TiDe3R2reUkE13Hr95Ulm9ArPu7iLarvPVCOo6d1ds/AaVU9Ql1k0pypwBddqtJHkV1CjtR6JSrYQzsMw4ayRkdgOWw5aCcOS/R6cyqZfZk75X9bpThBgwZZnT7uY1vSxw4j05HLNV4pFlQjGQKwwKHBQEA1/7/RkZGRq7FF0sqyJMACgAA","ero":"100","sectionId":"2222"}
 //			RES :: {"response":"@ACK@","dataStr":"H4sIAAAAAAAAAO19eYwk13lfH"}
-            jsonObj.put("command", "upload");
-            jsonObj.put("data", data);
-            jsonObj.put("ero", eroCodeValue);
+            jsonObj.put("command","upload" );
+            jsonObj.put("data",data );
+            jsonObj.put("ero",eroCodeValue );
             jsonObj.put("sectionId", sectionIdValue);
 
 
-            System.out.println("Download Request>>>" + jsonObj.toString());
+            System.out.println("Download Request>>>"+jsonObj.toString());
             return jsonObj.toString();
 
         } catch (JSONException ex) {

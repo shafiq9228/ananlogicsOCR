@@ -39,6 +39,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -74,7 +75,8 @@ public class CameraActivity extends AppCompatActivity {
 
         serviceNumber = getIntent().getExtras().getString("serviceNumber");
         captureBtn = findViewById(R.id.captureBtn);
-        boolean isFromFullImage = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("disableOcr", false));
+        boolean isFromFullImage = (getIntent().getExtras() != null &&
+                getIntent().getExtras().getBoolean("disableOcr", false));
         if (isFromFullImage) {
             findViewById(R.id.cameraView).setVisibility(View.GONE);
             cameraView = findViewById(R.id.bigCameraView);
@@ -194,6 +196,9 @@ public class CameraActivity extends AppCompatActivity {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("img", imageBase64);
             RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+            String prevValue = getIntent().getExtras().getString("prevValue");
+
             JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject, jsonObjResp -> {
                 try {
                     Intent intent = new Intent();
@@ -201,6 +206,7 @@ public class CameraActivity extends AppCompatActivity {
                     if (meterNumber.equals("")) {
                         meterNumber = " ";
                     }
+
                     MeterDetails.outputBase64 = jsonObjResp.getJSONObject("data").getString("outputImage");
                     String ocrType = getIntent().getExtras().getString("type");
                     String phase = getIntent().getExtras().getString("phase");
@@ -208,7 +214,13 @@ public class CameraActivity extends AppCompatActivity {
                     Date currentDate = new Date();
                     String currentDateFormat = sdf.format(currentDate);
 
-                    MeterData data = new MeterData(meterNumber, currentDateFormat, phase, null, false, MeterDetails.outputBase64);
+                    if(StringUtils.equalsIgnoreCase(ocrType, MeterType.kwh.toString()) ||
+                        StringUtils.equalsIgnoreCase(ocrType, MeterType.Kvah.toString())){
+                        meterNumber = compareValues(prevValue, meterNumber);
+                    }
+
+                    MeterData data = new MeterData(meterNumber,
+                            currentDateFormat, phase, null, false, MeterDetails.outputBase64);
                     if (ocrType.equals(MeterType.kwh.toString())) {
                         data.setType(MeterType.kwh);
                         MeterDetails.kwhData = data;
@@ -283,7 +295,6 @@ public class CameraActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Unable To Convert Bitmap to Uri", Toast.LENGTH_SHORT).show();
             }
         }
-
         return convertedUri;
     }
 
@@ -324,5 +335,23 @@ public class CameraActivity extends AppCompatActivity {
         } catch (Exception e) {
             return null;
         }
+    }
+
+
+    private String compareValues(String prevValue, String presValue){
+        try{
+            double presentValueDb = Double.parseDouble(presValue);
+            double prevValueDb = Double.parseDouble(prevValue);
+
+            if(presentValueDb > 1000){
+                while(presentValueDb/prevValueDb > 4){
+                    presValue = StringUtils.substring(presValue, 1, presValue.length());
+                    presentValueDb = Double.parseDouble(presValue);
+                }
+            }
+        }catch(Exception ex){
+
+        }
+        return presValue;
     }
 }

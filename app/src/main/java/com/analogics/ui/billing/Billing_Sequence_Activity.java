@@ -11,10 +11,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -59,17 +59,18 @@ import com.analogics.utils.FileOperations;
 import com.analogics.utils.GetIMEI_Number;
 import com.analogics.utils.PublicVariables;
 import com.whty.smartpos.tysmartposapi.ITYSmartPosApi;
-import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConfig;
+import com.whty.smartpos.tysmartposapi.modules.printer.PrintElement;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConstant;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterInitListener;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterListener;
 
-import java.io.InputStream;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 
 
 public class Billing_Sequence_Activity extends AppCompatActivity {
-
+    //Tsspdcl_BillingCalculation globalVbls = new Tsspdcl_BillingCalculation(); 220124
     String portNo1 = "/dev/ttyHS0";
     Tsspdcl_FileWriting uploadFile;
 
@@ -937,7 +938,8 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
     public void dataentry() {
         PublicVariables.isDuplicateSlip = false;
 
-        if ((inputDataVO.getMeter_reading_mode() == '1') || (inputDataVO.getMeter_reading_mode() == '2')) {
+        if ((inputDataVO.getMeter_reading_mode() == '1')
+                || (inputDataVO.getMeter_reading_mode() == '2')) {
             inputDataVO.setNewMeterNumber(irdaVO.getMeterNumber());
             //inputDataVO.setMtrmk(irdaVO.get);
             inputDataVO.setMtrmk("HPL");
@@ -1167,7 +1169,7 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         kwhDialogEditText = editText;
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.Rmd);
+            openOcrCamera(false, MeterType.Rmd, "");
         });
 
         Btn_next.setOnClickListener(v -> {
@@ -1223,7 +1225,7 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
 
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.Rmd);
+            openOcrCamera(false, MeterType.Rmd, "");
         });
 //        resultImge = alertLayout.findViewById(R.id.result_img);
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(Billing_Sequence_Activity.this);
@@ -1370,29 +1372,32 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
             AlertDialog dialog = alertDialog.create();
 
             photoBtn.setOnClickListener(view -> {
-                openOcrCamera(true, MeterType.FullPhoto);
+                openOcrCamera(true, MeterType.FullPhoto, "");
             });
             nextBtn.setOnClickListener(view -> {
                 if (MeterDetails.fullImageBitmap != null) {
+
+                    MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
+                    confirmationDialog();
                     dialog.dismiss();
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(Billing_Sequence_Activity.this);
-                    builder.setMessage("Do you want to Save Photo's ?");
-
-                    builder.setTitle("Save Photos!");
-
-                    builder.setPositiveButton("Yes", (m, which) -> {
-                        MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
-                        confirmationDialog();
-                    });
-
-                    builder.setNegativeButton("No", (m, which) -> {
-                        m.dismiss();
-                    });
-                    builder.setCancelable(false);
-                    AlertDialog mDialog = builder.create();
-
-                    mDialog.show();
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(Billing_Sequence_Activity.this);
+//                    builder.setMessage("Do you want to Save Photo's ?");
+//
+//                    builder.setTitle("Save Photos!");
+//
+//                    builder.setPositiveButton("Yes", (m, which) -> {
+//                        MeterDetails.saveBase64ToImageFile(getApplicationContext(), ET_ServiceNo.getText().toString());
+//                        confirmationDialog();
+//                    });
+//
+//                    builder.setNegativeButton("No", (m, which) -> {
+//                        m.dismiss();
+//                    });
+//                    builder.setCancelable(false);
+//                    AlertDialog mDialog = builder.create();
+//
+//                    mDialog.show();
 
 
                 } else {
@@ -1455,6 +1460,9 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
 
     private int saveAndPrintTransaction(String machineId, SharedPreferences sharedpreferences, String billno) {
         Log.d("myMeterApp", "i m in print");
+//        globalVbls.getEroDetails(inputDataVO); 220124
+//        globalVbls.getIntonDetails(inputDataVO); 220124
+
         int retValue = 0;
         retValue = uploadFile.Write_Record(inputDataVO, machineId);
         String responseStr = uploadFile.Write_Into_File(inputDataVO, machineId);
@@ -1492,6 +1500,8 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
             if (inputDataVO.getPmtrsts() == 11)
                 sendSMS(aePhoneNo, inputDataVO.getService_number() + " ,METER BURNT");
         }
+//        globalVbls.saveDuplicatePrintData(inputDataVO, aePhoneNo); 220124
+
         printBill w = new printBill();
         w.execute();
         return 1;
@@ -1632,11 +1642,11 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         inputDataVO.setDueyy(Integer.parseInt(currentDate.substring(4, 8).toString()));
         future_date();
 
-        if (inputDataVO.getArrearsBefore() > 10 || inputDataVO.getArrearsAfter() > 10) {
+        if(inputDataVO.getArrearsBefore()  > 10 || inputDataVO.getArrearsAfter() > 10){
             inputDataVO.setDisdd(inputDataVO.getOmtrdd());
             inputDataVO.setDismm(inputDataVO.getOmtrmm());
             inputDataVO.setDisyy(inputDataVO.getOmtryy());
-        } else {
+        }else {
             inputDataVO.setDisdd(Integer.parseInt(currentDate.substring(0, 2).toString()));
             inputDataVO.setDismm(Integer.parseInt(currentDate.substring(2, 4).toString()));
             inputDataVO.setDisyy(Integer.parseInt(currentDate.substring(4, 8).toString()));
@@ -1648,6 +1658,7 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
 
             if ((inputDataVO.getPmtrsts() == 1) && (inputDataVO.getPresentKwh() == inputDataVO.getPreviousKwh()))
                 inputDataVO.setPmtrsts(9);
+//            ret = globalVbls.calculate(inputDataVO); 220124
             if (ret == 2) {
                 showkwhAlertDialog("PRV KWH:" + inputDataVO.getPreviousKwh() + "\nPRS KWH:", 11);
                 //goto kwh_entry;
@@ -1685,26 +1696,10 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
             inputDataVO.setPamount(0.00F);
             inputDataVO.setPedchg(0.00F);
         }
-		/*if((inputDataVO.getBillAmount()==nan)||(inputDataVO.getBillAmount()==plusINF)||(inputDataVO.getBillAmount()==minusINF))
-		{
-			Toast.makeText(Billing_Sequence_Activity.this, "INVALID BILL AMOUNT.", Toast.LENGTH_LONG).show();
-			return 0;
-		}*/
+
         if (inputDataVO.getScstflag() == 2) {
-            //displayMessagebox("SUB UNITS : "+QString::number(rt.subsidyunits)+"\nSUB AMT : "+QString::number(round(rt.Subsidybillamnt))+"\nENTER TO NEXT");
             Toast.makeText(Billing_Sequence_Activity.this, "SUB UNITS : " + inputDataVO.getSubsidyunits() + "\nSUB AMT : " + inputDataVO.getSubsidybillamnt() + "\nENTER TO NEXT", Toast.LENGTH_LONG).show();
         }
-		/*reply = displayMessageboxQuestion("UNITS : "+QString::number(rt.units)+"\nBILL AMT : "+QString::number(rt.BillAmount)+"\nTOTAL DUE : "+QString::number(rt.TotalDue)+"\n---------------------------\nISSUE BILL(Y/N)");
-		qDebug()<<"reply:"<<reply;
-		if(reply==false)
-		{
-			return 0;
-		}
-		saveDuplicatePrintData();
-		globalVbls.saveDuplicatePrintData(inputDataVO);
-		*/
-        //Toast.makeText(Billing_Sequence_Activity.this, "PortNo:SC1", Toast.LENGTH_LONG).show();
-        //Write_Into_File();
 
         SharedPreferences sharedpreferences;
         sharedpreferences = getSharedPreferences("billnoPref_Key", Context.MODE_PRIVATE);
@@ -1723,12 +1718,17 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
             editor.clear();
         } else {
             inputDataVO.setBill_count(Integer.parseInt(billno));
-			/*inputDataVO.setBill_count(inputDataVO.getBill_count()+1);
-			SharedPreferences.Editor editor = sharedpreferences.edit();
-			editor.putString("billno_Key", inputDataVO.getBill_count()+"");
-			editor.commit();
-			editor.clear();*/
         }
+
+        if(inputDataVO.getCat() == 1 && inputDataVO.getNetAmount() > 30000) {
+            if ((inputDataVO.getUnits() > (inputDataVO.getOldavg() * 4)) ||
+                    (inputDataVO.getBilledDemand() > (inputDataVO.getContractedLoad() * 4))) {
+                inputDataVO.setAbnormalFlag("1");
+            } else
+                inputDataVO.setAbnormalFlag("0");
+        }
+        else
+            inputDataVO.setAbnormalFlag("0");
 
         String machineId = GetIMEI_Number.getUniqueIMEIId(Billing_Sequence_Activity.this);
 
@@ -1783,8 +1783,6 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
                     for (int i = 0; i < stringSplits.length; i++) {
                         if (i == 3) {
                             result += "DUPLICATE BILL";
-//                            result += "\n";
-//                            result += "-------------------------";
                             result += "\n";
                             result += "\n";
                         }
@@ -1805,70 +1803,95 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
                         }
                     });
 
-//                  /*  Bundle bundle = new Bundle();
-//                    bundle.putInt(PrinterConfig.FONT_SIZE, 4);
-//                    bundle.putInt(PrinterConfig.ALIGN, PrinterConstant.Align.ALIGN_CENTER);
-//                    bundle.putInt(PrinterConfig.CN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-//                    bundle.putInt(PrinterConfig.EN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-//                    tyApi.setPrinterParameters(bundle);
-//                  */
-//                   //tyApi.setLineSpace(10);
-//                   tyApi.setLineSpace(1);
-//                   //tyApi.setTypeface(Typeface.SANS_SERIF); //font style
-//                   tyApi.setTypeface(Typeface.DEFAULT);
-//                   /*Bundle bundle = new Bundle();
-//                   bundle.putInt(PrinterConfig.FONT_SIZE, 5);
-//                   bundle.putInt(PrinterConfig.ALIGN, PrinterConstant.Align.ALIGN_CENTER);
-//                   bundle.putInt(PrinterConfig.CN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-//                   bundle.putInt(PrinterConfig.EN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-//                   tyApi.setPrinterParameters(bundle);
-//*/
-//                   if (PublicVariables.isDuplicateSlip) {
-//                   String[] stringSplits = receiptData.split("\n");
-//                   for (int i = 0; i < stringSplits.length; i++) {
-//                       //tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "\n", PrinterConstant.Align.ALIGN_CENTER, PrinterConstant.FontSize.FONT_SIZE_LARGE));
-//                   if(i==11||i==12||i==44) {
+                    if(PublicVariables.isDuplicateSlip){
+                        tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                        tyApi.setLineSpace(1);
+                        String duplicatePrint = inputDataVO.getDuplicatePrintDT();
+                        String[] boldText = duplicatePrint.split("\n");
+                        tyApi.appendPrintElement(new PrintElement("DUPLICATE BILL", PrinterConstant.Align.ALIGN_CENTER));
+                        for(int i=0;i<boldText.length;i++){
+                            if(StringUtils.containsIgnoreCase(boldText[i], "SC.NO:") ||
+                                    StringUtils.containsIgnoreCase(boldText[i], "USC:") ||
+                                    StringUtils.containsIgnoreCase(boldText[i], "TOTAL AMOUNT")){
+                                tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+                            }else{
+                                tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_CENTER));
+                            }
+                        }
+//                        tyApi.printText(inputDataVO.getDuplicatePrintDT() + "\n");
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        ret = tyApi.startPrintElement();
+
+                    }else{
+//                        Typeface font = Typeface.createFromAsset(getAssets(),"fonts/OpenSans_SemiCondensed-Bold.ttf");
 //
-//                       tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "", PrinterConstant.Align.ALIGN_CENTER, PrinterConstant.FontSize.FONT_SIZE_LARGE,true));
-//                       System.out.println(">>>" + i + " >>>>" + stringSplits[i]);
-//                   }else{
-//                       //tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "", PrinterConstant.Align.ALIGN_CENTER,PrinterConstant.FontSize.FONT_SIZE_MIDDLE,true));
-//                       tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "", PrinterConstant.Align.ALIGN_CENTER,4));
-//                       System.out.println(">>>" + i + " >>>>" + stringSplits[i]);
-//                   }}
-//                   }else {
-//                       String[] stringSplits = receiptData.split("\n");
-//                       for (int i = 0; i < stringSplits.length; i++) {
-//                           //tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "\n", PrinterConstant.Align.ALIGN_CENTER, PrinterConstant.FontSize.FONT_SIZE_LARGE));
-//                           if(i==9||i==10||i==42) {
+//                        tyApi.setTypeface(Typeface.create(font, Typeface.BOLD));
+//                        Bundle bundle = new Bundle();
+//                        bundle.putInt(PrinterConfig.ALIGN, PrinterConstant.Align.ALIGN_CENTER);
+//                        bundle.putInt(PrinterConfig.EN_FONT, font.getStyle());
+//                        bundle.putInt(PrinterConfig.FONT_SIZE,5);
+//                        tyApi.setPrinterParameters(bundle);
 //
-//                               tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "", PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE,true));
-//                               System.out.println(">>>" + i + " >>>>" + stringSplits[i]);
-//                           }else{
-//                               tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "", PrinterConstant.Align.ALIGN_CENTER,4));
-//                               //tyApi.appendPrintElement(new PrintElement(stringSplits[i] + "", PrinterConstant.Align.ALIGN_CENTER,PrinterConstant.FontSize.FONT_SIZE_MIDDLE,true));
-//                               System.out.println(">>>" + i + " >>>>" + stringSplits[i]);
-//                           }}
-//                   }
-//                   //tyApi.appendPrintElement(new PrintElement("INVOICE", PrinterConstant.Align.ALIGN_CENTER, PrinterConstant.FontSize.FONT_SIZE_LARGE));
-//                   //tyApi.appendPrintElement(new PrintElement("Tap hoa", PrinterConstant.Align.ALIGN_CENTER));
+//                        tyApi.setLineSpace(1);
+//                        tyApi.setTypeface(Typeface.create(font, Typeface.BOLD));
+//
+//                        String printData = inputDataVO.getDuplicatePrintDT();
+//                        String[] data=printData.split("\n");
+//
+//                        for(int i=0;i<data.length;i++){
+//                            tyApi.appendPrintElement(new PrintElement(data[i], PrinterConstant.Align.ALIGN_CENTER));
+//                        }
 
-                    Bundle bundle = new Bundle();
-                    bundle.putInt(PrinterConfig.FONT_SIZE, 4);
-                    bundle.putInt(PrinterConfig.ALIGN, PrinterConstant.Align.ALIGN_CENTER);
-                    bundle.putInt(PrinterConfig.CN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-                    bundle.putInt(PrinterConfig.EN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-                    tyApi.setPrinterParameters(bundle);
-                    tyApi.setLineSpace(5);
-                    int ret = tyApi.printText(receiptData);
 
-                    ret = tyApi.startPrintElement();
+//                        tyApi.setLineSpace(5);
+//                        tyApi.printText(inputDataVO.getPrintHead() + "\n");
+//                        tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText1(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_MIDDLE_WIDTH,true));
+//                        tyApi.printText(inputDataVO.getPrintBody() + "\n");
+//                        tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText2(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE,true));
+//                        tyApi.printText(inputDataVO.getPrintFoot() + "\n");
 
-                    AssetManager assetManager = getAssets();
-                    InputStream is = assetManager.open("vote_3.bmp");
-                    Bitmap bitmap = BitmapFactory.decodeStream(is);
-                    int ret1 = tyApi.printBitmap(bitmap);
 
+                        tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+
+                        tyApi.setLineSpace(1);
+                        String[] headerData=inputDataVO.getPrintHead().split("\n");
+
+                        for(int i=0;i<headerData.length;i++){
+                            tyApi.appendPrintElement(new PrintElement(headerData[i], PrinterConstant.Align.ALIGN_CENTER));
+
+                        }
+                        String[] boldText1=inputDataVO.getPrintBoldText1().split("\n");
+
+                        for(int i=0;i<boldText1.length;i++){
+                            //tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT));
+                            tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+
+                        }
+
+                        String[] body=inputDataVO.getPrintBody().split("\n");
+
+                        for(int i=0;i<body.length;i++){
+                            tyApi.appendPrintElement(new PrintElement(body[i], PrinterConstant.Align.ALIGN_CENTER));
+
+                        }
+
+                        String[] boldText2=inputDataVO.getPrintBoldText2().split("\n");
+
+                        for(int i=0;i<boldText2.length;i++){
+                            //tyApi.appendPrintElement(new PrintElement(boldText2[i], PrinterConstant.Align.ALIGN_LEFT));
+                            tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText2(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+
+                        }
+                        String[] foot=inputDataVO.getPrintFoot().split("\n");
+
+                        for(int i=0;i<foot.length;i++){
+                            tyApi.appendPrintElement(new PrintElement(foot[i], PrinterConstant.Align.ALIGN_CENTER));
+                        }
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        ret = tyApi.startPrintElement();
+                    }
                 }
 
             } catch (Exception e1) {
@@ -2592,7 +2615,8 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         kwhDialogEditText = editText;
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.Kvah);
+            openOcrCamera(false, MeterType.Kvah,
+                    String.valueOf(inputDataVO.getPreviousKvah()));
         });
 
 
@@ -2650,7 +2674,11 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
 
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.kwh);
+            String value = String.valueOf(inputDataVO.getPreviousKwh());
+            Intent intent = new Intent();
+            intent.putExtra("prevKwhValue",value);
+            openOcrCamera(false, MeterType.kwh,
+                    String.valueOf(inputDataVO.getPreviousKwh()));
         });
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(Billing_Sequence_Activity.this);
         alertDialog.setCancelable(false);
@@ -2761,12 +2789,16 @@ public class Billing_Sequence_Activity extends AppCompatActivity {
         }
     }
 
-    private void openOcrCamera(boolean disableOcr, MeterType ocrType) {
+    private void openOcrCamera(boolean disableOcr,
+                               MeterType ocrType, String prevValue) {
+
         Intent intent = new Intent(Billing_Sequence_Activity.this, CameraActivity.class);
         intent.putExtra("disableOcr", disableOcr);
         intent.putExtra("type", ocrType.toString());
         intent.putExtra("phase", meterPhaseType);
         intent.putExtra("serviceNumber", meterServiceNumber);
+        intent.putExtra("prevValue", prevValue);
+
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivityForResult(intent, 111);
     }

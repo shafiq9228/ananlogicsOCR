@@ -6,12 +6,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -29,7 +27,6 @@ import com.analogics.DBAdapter.BillingDAO;
 import com.analogics.DBAdapter.DBAdapter;
 import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
-import com.analogics.irda.USB_Activity;
 import com.analogics.pojo.ConsumerDataVO;
 import com.analogics.pojo.IrdaVO;
 import com.analogics.pojo.inputDataVO;
@@ -39,14 +36,13 @@ import com.analogics.utils.AlertMessage;
 import com.analogics.utils.CommonFunctions;
 import com.analogics.utils.PublicVariables;
 import com.whty.smartpos.tysmartposapi.ITYSmartPosApi;
-import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConfig;
+import com.whty.smartpos.tysmartposapi.modules.printer.PrintElement;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConstant;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterInitListener;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterListener;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -207,6 +203,7 @@ public class Billing_SearchBy_Activity extends Activity {
                     builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             // Do nothing but close the dialog
+                            PublicVariables.isDuplicateSlip = true;
                             dialog.dismiss();
                             dbAdapter.openDataBase();
                             String already_billed = "select duplicateBillData,QrInformation from duplicateBillPurpose where consumer_num='" + ET_ServiceNo.getText().toString().trim() + "';";
@@ -215,6 +212,7 @@ public class Billing_SearchBy_Activity extends Activity {
                                 inputDataVO.setDuplicatePrintDT(cursor.getString(0));
                                 inputDataVO.setQTPrintData(cursor.getString(1));
                             }
+                            PublicVariables.isDuplicateSlip = true;
                             dbAdapter.close();
                             printBill w = new printBill();
                             w.execute();
@@ -239,7 +237,7 @@ public class Billing_SearchBy_Activity extends Activity {
                     readrecord = dbAdapter.selectRecordsFromDB(query, null);
                     if (readrecord.moveToFirst()) {
                         if (type.equalsIgnoreCase("Automatic")) {
-                            Intent intent = new Intent(Billing_SearchBy_Activity.this, USB_Activity.class);//Search_By_NameActivity.class
+                            Intent intent = new Intent(Billing_SearchBy_Activity.this, Search_By_NameActivity.class);//Search_By_NameActivity.class
                             intent.putExtra("SearchType", "Automatic");
                             intent.putExtra("ServiceNoToSearch", ET_ServiceNo.getText().toString());
                             intent.putExtra("IRDAVO", (Serializable) irdaVO);
@@ -572,20 +570,95 @@ public class Billing_SearchBy_Activity extends Activity {
                         }
                     });
 
-                    Bundle bundle = new Bundle();
-                    bundle.putInt(PrinterConfig.FONT_SIZE, 4);
-                    bundle.putInt(PrinterConfig.ALIGN, PrinterConstant.Align.ALIGN_CENTER);
-                    bundle.putInt(PrinterConfig.CN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-                    bundle.putInt(PrinterConfig.EN_FONT, PrinterConstant.Typeface.SONGTI_BOLD);
-                    tyApi.setPrinterParameters(bundle);
-                    tyApi.setLineSpace(5);
-                    int ret = tyApi.printText(receiptData);
-                    ret = tyApi.startPrintElement();
-                    AssetManager assetManager = getAssets();
-                    InputStream is = assetManager.open("vote_3.bmp");
-                    Bitmap bitmap = BitmapFactory.decodeStream(is);
-                    ret = tyApi.printBitmap(bitmap);
+                    if(PublicVariables.isDuplicateSlip){
+                        tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                        tyApi.setLineSpace(1);
+                        String duplicatePrint = inputDataVO.getDuplicatePrintDT();
+                        String[] boldText = duplicatePrint.split("\n");
+                        tyApi.appendPrintElement(new PrintElement("DUPLICATE BILL", PrinterConstant.Align.ALIGN_CENTER));
+                        for(int i=0;i<boldText.length;i++){
+                            if(StringUtils.containsIgnoreCase(boldText[i], "SC.NO:") ||
+                                    StringUtils.containsIgnoreCase(boldText[i], "USC:") ||
+                                    StringUtils.containsIgnoreCase(boldText[i], "TOTAL AMOUNT")){
+                                tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+                            }else{
+                                tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_CENTER));
+                            }
+                        }
+//                        tyApi.printText(inputDataVO.getDuplicatePrintDT() + "\n");
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        tyApi.startPrintElement();
 
+                    }else{
+//                        Typeface font = Typeface.createFromAsset(getAssets(),"fonts/OpenSans_SemiCondensed-Bold.ttf");
+//
+//                        tyApi.setTypeface(Typeface.create(font, Typeface.BOLD));
+//                        Bundle bundle = new Bundle();
+//                        bundle.putInt(PrinterConfig.ALIGN, PrinterConstant.Align.ALIGN_CENTER);
+//                        bundle.putInt(PrinterConfig.EN_FONT, font.getStyle());
+//                        bundle.putInt(PrinterConfig.FONT_SIZE,5);
+//                        tyApi.setPrinterParameters(bundle);
+//
+//                        tyApi.setLineSpace(1);
+//                        tyApi.setTypeface(Typeface.create(font, Typeface.BOLD));
+//
+//                        String printData = inputDataVO.getDuplicatePrintDT();
+//                        String[] data=printData.split("\n");
+//
+//                        for(int i=0;i<data.length;i++){
+//                            tyApi.appendPrintElement(new PrintElement(data[i], PrinterConstant.Align.ALIGN_CENTER));
+//                        }
+
+
+//                        tyApi.setLineSpace(5);
+//                        tyApi.printText(inputDataVO.getPrintHead() + "\n");
+//                        tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText1(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_MIDDLE_WIDTH,true));
+//                        tyApi.printText(inputDataVO.getPrintBody() + "\n");
+//                        tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText2(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE,true));
+//                        tyApi.printText(inputDataVO.getPrintFoot() + "\n");
+
+
+                        tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+
+                        tyApi.setLineSpace(1);
+                        String[] headerData=inputDataVO.getPrintHead().split("\n");
+
+                        for(int i=0;i<headerData.length;i++){
+                            tyApi.appendPrintElement(new PrintElement(headerData[i], PrinterConstant.Align.ALIGN_CENTER));
+
+                        }
+                        String[] boldText1=inputDataVO.getPrintBoldText1().split("\n");
+
+                        for(int i=0;i<boldText1.length;i++){
+                            //tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT));
+                            tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+
+                        }
+
+                        String[] body=inputDataVO.getPrintBody().split("\n");
+
+                        for(int i=0;i<body.length;i++){
+                            tyApi.appendPrintElement(new PrintElement(body[i], PrinterConstant.Align.ALIGN_CENTER));
+
+                        }
+
+                        String[] boldText2=inputDataVO.getPrintBoldText2().split("\n");
+
+                        for(int i=0;i<boldText2.length;i++){
+                            //tyApi.appendPrintElement(new PrintElement(boldText2[i], PrinterConstant.Align.ALIGN_LEFT));
+                            tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText2(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+
+                        }
+                        String[] foot=inputDataVO.getPrintFoot().split("\n");
+
+                        for(int i=0;i<foot.length;i++){
+                            tyApi.appendPrintElement(new PrintElement(foot[i], PrinterConstant.Align.ALIGN_CENTER));
+                        }
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
+                        tyApi.startPrintElement();
+                    }
                 }
             } catch (Exception e1) {
                 e1.printStackTrace();

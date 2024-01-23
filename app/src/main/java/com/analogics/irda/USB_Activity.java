@@ -1,5 +1,6 @@
 package com.analogics.irda;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -28,7 +29,6 @@ import com.analogics.pojo.IrdaVO;
 import com.analogics.ui.billing.Billing_SearchBy_Activity;
 import com.analogics.ui.billing.Search_By_NameActivity;
 import com.analogics.ui.menu.BillingMenuActivity;
-import com.analogics.ui.menu.MainMenuActivity;
 import com.analogics.ui.settings.UsbService;
 import com.analogics.utils.HexSupport;
 import com.analogics.utils.PlayAudio;
@@ -42,6 +42,7 @@ import java.util.Set;
 
 
 public class USB_Activity extends Activity {
+    int numberOfTries =0;
 
     UsbService usbService = new UsbService();
     private MyHandler mHandler;
@@ -50,16 +51,18 @@ public class USB_Activity extends Activity {
     Cursor readrecord = null;
 
     IrdaVO irdaVO = new IrdaVO();
-    Button Btn_home;
+    Button Btn_home, Btn_nextIR_IRDA;
     Button Btn_IR_3Phase_Send, Btn_IR_1Phase_Send;
     Button Btn_IRDA_3Phase_Send, Btn_IRDA_1Phase_Send;
+    Button Btn_3PH_IRDA_Send;
+    Button Btn_IRDA_1Phase_Delay_Send;
 
     String meterData = "";
     HexSupport hex = new HexSupport();
     String meterNumberIrDa = "";
     private TextView display;
     boolean isIr1P = false, isIr3P = false;
-    boolean isIrda1P = false, isIrda3P = false;
+    boolean isIrda1P = false, isIrda3P = false, isIrda1PDelay = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,7 @@ public class USB_Activity extends Activity {
         mHandler = new MyHandler(USB_Activity.this);
 
         Btn_home = (Button) findViewById(R.id.Btn_home);
+        Btn_nextIR_IRDA = findViewById(R.id.BTN_nextIR_IRDA);
         display = (TextView) findViewById(R.id.display);
 
         Btn_IR_3Phase_Send = (Button) findViewById(R.id.Btn_IR_3Phase_Send);
@@ -76,6 +80,8 @@ public class USB_Activity extends Activity {
 
         Btn_IRDA_3Phase_Send = (Button) findViewById(R.id.Btn_IRDA_3Phase_Send);
         Btn_IRDA_1Phase_Send = (Button) findViewById(R.id.Btn_IRDA_1Phase_Send);
+        Btn_IRDA_1Phase_Delay_Send = (Button) findViewById(R.id.Btn_IRDA_1Phase_Delay_Send);
+        Btn_3PH_IRDA_Send = (Button) findViewById(R.id.Btn_3PH_IRDA_Send);
 
         Btn_home.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,6 +125,7 @@ public class USB_Activity extends Activity {
         Btn_IRDA_3Phase_Send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 isIr3P = false;
                 isIr1P = false;
                 isIrda1P = false;
@@ -227,6 +234,15 @@ public class USB_Activity extends Activity {
                             String hv_rmd = outputBuff1.substring(98, 100) + outputBuff1.substring(96, 98);
                             String rmd = (Integer.parseInt(hv_rmd, 16) / 100.00) + "";
 
+                            boolean isValid = true;
+                            try{
+                                double rmdDouble = Double.parseDouble(rmd);
+                                if(rmdDouble > 50)
+                                    isValid = false;
+                            }catch(Exception ex){
+
+                            }
+
                             String meterMake = "";
                             try{
                                 String meterMakeHex = meterData.substring(114, 116) + meterData.substring(112, 114) + meterData.substring(110, 112);
@@ -236,67 +252,476 @@ public class USB_Activity extends Activity {
 
                             }
                             display.setText("\n------------------------\n         IRDA 3 Phase " +
-                                           "\nMeterNo   :  " + meterNumber);
+                                    "\nMeterNo   :  " + meterNumber);
                             display.append("\nKWH       :  " + meter_units +
-                                           "\nKVAH      :  " + ir_curkvah +
-                                         "\nhv_rmd    : " + rmd +
-                                    "\n***********************************" +
-                                    "\nVoltage_R_VR  : " + voltage_R_VR +
-                                    "\nVoltages_Y_VY : " + voltage_Y_VY +
-                                    "\nVoltage_B_VB   : " + voltage_B_VB +
-                                    "\nCurrent_R_IR  : " + current_R_IR +
-                                    "\nCurrent_Y_IY  : " + current_Y_IY +
-                                    "\nCurrent_B_IB  : " + current_B_IB + "\n------------------------\n");
+                                    "\nKVAH      :  " + ir_curkvah +
+                                    "\nhv_rmd    : " + rmd +
+                                    // "\n***********************************" +
+                                    // "\nVoltage_R_VR  : " + voltage_R_VR +
+                                    // "\nVoltages_Y_VY : " + voltage_Y_VY +
+                                    //"\nVoltage_B_VB   : " + voltage_B_VB +
+                                    //"\nCurrent_R_IR  : " + current_R_IR +
+                                    // "\nCurrent_Y_IY  : " + current_Y_IY +
+                                    //"\nCurrent_B_IB  : " + current_B_IB +
+                                    "\n------------------------\n");
 
-                            IrdaVO irdaVO = new IrdaVO();
-                            irdaVO.setMeterNumber(meterNumber);
-                            irdaVO.setVoltage_R_VR(Double.parseDouble(voltage_R_VR));
-                            irdaVO.setVoltage_Y_VY(Double.parseDouble(voltage_Y_VY));
-                            irdaVO.setVoltage_B_VB(Double.parseDouble(voltage_B_VB));
-                            irdaVO.setCurrent_R_IR(Double.parseDouble(current_R_IR));
-                            irdaVO.setCurrent_Y_IY(Double.parseDouble(current_Y_IY));
-                            irdaVO.setCurrent_B_IB(Double.parseDouble(current_B_IB));
-                            irdaVO.setMeterMake(meterMake);
+                            if(isValid){
+                                IrdaVO irdaVO = new IrdaVO();
+                                irdaVO.setMeterNumber(meterNumber);
+                                irdaVO.setVoltage_R_VR(Double.parseDouble(voltage_R_VR));
+                                irdaVO.setVoltage_Y_VY(Double.parseDouble(voltage_Y_VY));
+                                irdaVO.setVoltage_B_VB(Double.parseDouble(voltage_B_VB));
+                                irdaVO.setCurrent_R_IR(Double.parseDouble(current_R_IR));
+                                irdaVO.setCurrent_Y_IY(Double.parseDouble(current_Y_IY));
+                                irdaVO.setCurrent_B_IB(Double.parseDouble(current_B_IB));
+                                irdaVO.setMeterMake(meterMake);
 
-                            irdaVO.setKWH(Double.parseDouble(meter_units));
-                            irdaVO.setKVAH(Double.parseDouble(ir_curkvah));
-                            irdaVO.setHv_rmd(Double.parseDouble(rmd));
-                            irdaVO.setIrdaReadingFlag(1);
-                            new   PlayAudio().playSuccess(getApplicationContext());
+                                irdaVO.setKWH(Double.parseDouble(meter_units));
+                                irdaVO.setKVAH(Double.parseDouble(ir_curkvah));
+                                irdaVO.setHv_rmd(Double.parseDouble(rmd));
+                                irdaVO.setIrdaReadingFlag(1);
+                                new   PlayAudio().playSuccess(getApplicationContext());
 
-                            if(irdaVO != null){
-                                dbAdapter = DBAdapter.getDBAdapterInstance(USB_Activity.this);
-                                dbAdapter.openDataBase();
-                                String query = "select * from INPUT_MASTER where trim(printf('%08d',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
-                                if(irdaVO.getMeterNumber().length() > 8){
-                                    query = "select * from INPUT_MASTER where trim(printf('%s',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
-                                }
-                                readrecord = dbAdapter.selectRecordsFromDB(query, null);
+                                if(irdaVO != null){
+                                    dbAdapter = DBAdapter.getDBAdapterInstance(USB_Activity.this);
+                                    dbAdapter.openDataBase();
+                                    String query = "select * from INPUT_MASTER where trim(printf('%08d',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
+                                    if(irdaVO.getMeterNumber().length() > 8){
+                                        query = "select * from INPUT_MASTER where trim(printf('%s',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
+                                    }
+                                    readrecord = dbAdapter.selectRecordsFromDB(query, null);
 
-                                if (readrecord.moveToFirst() && !irdaVO.getMeterNumber().trim().isEmpty()) {
-                                    Intent intent = new Intent(USB_Activity.this, Search_By_NameActivity.class);
-                                    intent.putExtra("SearchType", "Automatic");
-                                    intent.putExtra("IRDAVO", (Serializable) irdaVO);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
+                                    if (readrecord.moveToFirst() && !irdaVO.getMeterNumber().trim().isEmpty()) {
+                                        Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Intent intent = new Intent(USB_Activity.this, Search_By_NameActivity.class);
+                                                intent.putExtra("SearchType", "Automatic");
+                                                intent.putExtra("IRDAVO", (Serializable) irdaVO);
+                                                startActivity(intent);
+                                                finish();
+                                            }
+                                        });
+
+                                    } else {
+                                        new PlayAudio().playFail(getApplicationContext());
+                                        display.setText("\n IRDA Three Phase \n MeterNo not found " + irdaVO.getMeterNumber() + "\n");
+                                        display.append("KWH             : " + meter_units +
+                                                "\nKVAH                 : " + ir_curkvah +
+                                                "\nhv_rmd               : " + rmd );
+                                        Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+//                                        alertDialog(irdaVO, "Meter Not found."+irdaVO.getMeterNumber()+"/n"+meter_units+"/n"+ir_curkvah+"/n"
+//                                                +rmd, BillingMenuActivity.class);
+                                        Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
+                                                i.putExtra("SearchType", "Automatic");
+                                                i.putExtra("IRDAVO", (Serializable) irdaVO);
+                                                startActivity(i);
+                                                finish();
+                                            }
+                                        });
+
+                                    }
+                                }else{
                                     new PlayAudio().playFail(getApplicationContext());
-                                    display.setText("\n IRDA Three Phase \n MeterNo not found " + irdaVO.getMeterNumber() + "\n");
-                                    display.append("KWH             : " + meter_units +
-                                            "\nKVAH                 : " + ir_curkvah +
-                                            "\nhv_rmd               : " + rmd );
+                                    display.setText("\n------------------------\n IRDA Three Phase \n Reading issue, try Again.\n");
                                     Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
-                                    alertDialog(irdaVO, "Meter Not found.", BillingMenuActivity.class);
 
-                                    Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
-                                    i.putExtra("SearchType", "Automatic");
-                                    i.putExtra("IRDAVO", (Serializable) irdaVO);
-                                    startActivity(i);
-                                    finish();
+                                    numberOfTries++;
+                                    switch (numberOfTries){
+                                        case 1:
+                                            Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                                            break;
+                                        case 2:
+                                            Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                                            break;
+                                        case 3:
+                                            Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                                            break;
+                                        case 4:
+                                            Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                                            AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                                            builder1.setTitle("Alert");
+                                            builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                                            builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                                    startActivity(intent);
+                                                    finish();
+                                                }
+                                            });
+                                            builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    numberOfTries=0;
+                                                }
+                                            });
+                                            AlertDialog alert = builder1.create();
+                                            alert.show();
+
+                                            if (!isFinishing()){
+                                                alert.show();
+                                            }
+                                            break;
+                                        default:
+                                            numberOfTries = 0;
+                                    }
                                 }
                             }else{
                                 new PlayAudio().playFail(getApplicationContext());
-                                display.setText("\n------------------------\n IRDA Three Phase \n Reading issue, try Again.\n");
+                                display.setText("\n------------------------\n IRDA Three Phase \n Abnormal Readings received, try Again.\n");
+                                Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+
+                                numberOfTries++;
+                                switch (numberOfTries){
+                                    case 1:
+                                        Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 2:
+                                        Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 3:
+                                        Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 4:
+                                        Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                                        AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                                        builder1.setTitle("Alert");
+                                        builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                                        builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                                startActivity(intent);
+                                                finish();
+                                            }
+                                        });
+                                        builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                numberOfTries=0;
+                                            }
+                                        });
+                                        AlertDialog alert = builder1.create();
+                                        alert.show();
+
+                                        if (!isFinishing()){
+                                            alert.show();
+                                        }
+                                        break;
+                                    default:
+                                        numberOfTries = 0;
+                                }
+                            }
+                        }
+                    }else{
+                        new PlayAudio().playFail(getApplicationContext());
+                        display.setText("\n------------------------\n IRDA Three Phase \n MeterNo invalid, try Again.\n");
+                        Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                        numberOfTries++;
+                        switch (numberOfTries){
+                            case 1:
+                                Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 2:
+                                Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 3:
+                                Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 4:
+                                Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                                AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                                builder1.setTitle("Alert");
+                                builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                                builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                });
+                                builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        numberOfTries=0;
+                                    }
+                                });
+                                AlertDialog alert = builder1.create();
+                                alert.show();
+
+                                if (!isFinishing()){
+                                    alert.show();
+                                }
+                                break;
+                            default:
+                                numberOfTries = 0;
+                        }
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                    display.setText("Please place the device correctly in front of meter");
+                    new PlayAudio().playFail(getApplicationContext());
+                    numberOfTries++;
+                    switch (numberOfTries){
+                        case 1:
+                            Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 2:
+                            Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 3:
+                            Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 4:
+                            Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                            AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                            builder1.setTitle("Alert");
+                            builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                            builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+                            builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    numberOfTries=0;
+                                }
+                            });
+                            AlertDialog alert = builder1.create();
+                            alert.show();
+
+                            if (!isFinishing()){
+                                alert.show();
+                            }
+                            break;
+                        default:
+                            numberOfTries = 0;
+                    }
+                }
+            }
+        });
+
+        //New 3PH IRDA 2500millisec.
+        Btn_3PH_IRDA_Send.setOnClickListener(new View.OnClickListener()  {
+            @Override
+            public void onClick(View v) {
+
+                isIr3P = false;
+                isIr1P = false;
+                isIrda1P = false;
+                isIrda3P = true;
+
+                display.setText("IRDA Three Phase selected");
+                display.setText("\n");
+                display.setText("Meter being read, please wait");
+                display.setText("\n");
+
+                AnalogicsUtil util = new AnalogicsUtil();
+                util.setIRDABaudRate3P(usbService);
+                usbService.sb = new StringBuilder();
+
+                try{
+                    byte[] buffer = new byte[11];
+                    // 95 95 FF FF FF 0B 96 31 11 05 00
+                    buffer[0] = (byte) 0x95;
+                    buffer[1] = (byte) 0x95;
+                    buffer[2] = (byte) 0xFF;
+                    buffer[3] = (byte) 0xFF;
+                    buffer[4] = (byte) 0xFF;
+                    buffer[5] = 0x0B;
+                    buffer[6] = (byte) 0x96;
+                    buffer[7] = 0x31;
+                    buffer[8] = 0x11;
+                    buffer[9] = 0x05;
+                    buffer[10] = 0x00;
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer);
+                            Thread.sleep(2500);
+                        }
+                    }catch(Exception ex){
+
+                    }
+                    String outputBuff = usbService.sb.toString();
+
+                    if (outputBuff.length() > 42) {
+                        outputBuff = outputBuff.substring(22);
+
+                        String hexMeterNumber = outputBuff.substring(18, 20) + outputBuff.substring(16, 18) + outputBuff.substring(14, 16);
+                        String meterNumber = Integer.parseInt(hexMeterNumber, 16) + "";
+
+                        HexSupport hex = new HexSupport();
+                        usbService.sb = new StringBuilder();
+                        byte[] buffer1 = new byte[3];
+                        buffer1[0] = (byte) util.hexStringToByteArray(outputBuff.substring(14, 16))[0];
+                        buffer1[1] = (byte) util.hexStringToByteArray(outputBuff.substring(16, 18))[0];
+                        buffer1[2] = (byte) util.hexStringToByteArray(outputBuff.substring(18, 20))[0];
+
+                        byte[] buffer2 = new byte[11];
+                        // 95 95 8A 94 32 0B 00 31 11 05 00  kwh/kvah/rmd
+                        buffer2[0] = (byte) 0x95;
+                        buffer2[1] = (byte) 0x95;
+                        buffer2[2] = buffer1[0];
+                        buffer2[3] = buffer1[1];
+                        buffer2[4] = buffer1[2];
+                        buffer2[5] = 0x0B;//
+                        buffer2[6] = 0x00;// 0x01 for solar kwh
+                        buffer2[7] = 0x31;
+                        buffer2[8] = 0x11;
+                        buffer2[9] = 0x05;
+                        buffer2[10] = 0x00;
+
+                        try{
+                            if (usbService != null) { // if UsbService was correctly binded, Send data
+                                usbService.write(buffer2);
+                                Thread.sleep(2500);
+                            }
+                        }catch(Exception ex){
+
+                        }
+
+                        String outputBuff1 = usbService.sb.toString();
+                        if (outputBuff1.length() > 42) {
+                            outputBuff1 = outputBuff1.substring(22);
+                            String VR = outputBuff1.substring(34, 36) + outputBuff1.substring(32, 34);
+                            String voltage_R_VR = (Integer.parseInt(VR, 16) / 10.00) + "";
+
+                            String VY = outputBuff1.substring(38, 40) + outputBuff1.substring(36, 38);
+                            String voltage_Y_VY = (Integer.parseInt(VY, 16) / 10.00) + "";
+
+                            String VB = outputBuff1.substring(42, 44) + outputBuff1.substring(40, 42);
+                            String voltage_B_VB = (Integer.parseInt(VB, 16) / 10.00) + "";
+
+                            String IR = outputBuff1.substring(46, 48) + outputBuff1.substring(44, 46);
+                            String current_R_IR = (Integer.parseInt(IR, 16) / 100.00) + "";
+
+                            String IY = outputBuff1.substring(50, 52) + outputBuff1.substring(48, 50);
+                            String current_Y_IY = (Integer.parseInt(IY, 16) / 100.00) + "";
+
+                            String IB = outputBuff1.substring(54, 56) + outputBuff1.substring(52, 54);
+                            String current_B_IB = (Integer.parseInt(IB, 16) / 100.00) + "";
+
+                            String CUMULATIVE_KWH = outputBuff1.substring(70, 72) +
+                                    outputBuff1.substring(68, 70) + outputBuff1.substring(66, 68) +
+                                    outputBuff1.substring(64, 66);
+                            String meter_units = (Integer.parseInt(CUMULATIVE_KWH, 16) / 100.00) + "";
+
+                            String CUMULATIVE_KVAH = outputBuff1.substring(94, 96) +
+                                    outputBuff1.substring(92, 94) + outputBuff1.substring(90, 92) +
+                                    outputBuff1.substring(88, 90);
+                            String ir_curkvah = (Integer.parseInt(CUMULATIVE_KVAH, 16) / 100.00) + "";
+
+                            String hv_rmd = outputBuff1.substring(98, 100) + outputBuff1.substring(96, 98);
+                            String rmd = (Integer.parseInt(hv_rmd, 16) / 100.00) + "";
+
+                            boolean isValid = true;
+                            try{
+                                double rmdDouble = Double.parseDouble(rmd);
+                                if(rmdDouble > 50)
+                                    isValid = false;
+                            }catch(Exception ex){
+
+                            }
+
+                            String meterMake = "";
+                            try{
+                                String meterMakeHex = meterData.substring(114, 116) + meterData.substring(112, 114) + meterData.substring(110, 112);
+                                meterMake = new com.analogics.utils.HexStringConverter().hexToString(meterMakeHex);
+
+                            }catch(Exception ex){
+
+                            }
+                            display.setText("\n------------------------\n         IRDA 3 Phase " +
+                                    "\nMeterNo   :  " + meterNumber);
+                            display.append("\nKWH       :  " + meter_units +
+                                    "\nKVAH      :  " + ir_curkvah +
+                                    "\nhv_rmd    : " + rmd +
+//                                    "\n***********************************" +
+//                                    "\nVoltage_R_VR  : " + voltage_R_VR +
+//                                    "\nVoltages_Y_VY : " + voltage_Y_VY +
+//                                    "\nVoltage_B_VB   : " + voltage_B_VB +
+//                                    "\nCurrent_R_IR  : " + current_R_IR +
+//                                    "\nCurrent_Y_IY  : " + current_Y_IY +
+//                                    "\nCurrent_B_IB  : " + current_B_IB +
+                                    "\n------------------------\n");
+
+                            if(isValid){
+                                IrdaVO irdaVO = new IrdaVO();
+                                irdaVO.setMeterNumber(meterNumber);
+                                irdaVO.setVoltage_R_VR(Double.parseDouble(voltage_R_VR));
+                                irdaVO.setVoltage_Y_VY(Double.parseDouble(voltage_Y_VY));
+                                irdaVO.setVoltage_B_VB(Double.parseDouble(voltage_B_VB));
+                                irdaVO.setCurrent_R_IR(Double.parseDouble(current_R_IR));
+                                irdaVO.setCurrent_Y_IY(Double.parseDouble(current_Y_IY));
+                                irdaVO.setCurrent_B_IB(Double.parseDouble(current_B_IB));
+                                irdaVO.setMeterMake(meterMake);
+
+                                irdaVO.setKWH(Double.parseDouble(meter_units));
+                                irdaVO.setKVAH(Double.parseDouble(ir_curkvah));
+                                irdaVO.setHv_rmd(Double.parseDouble(rmd));
+                                irdaVO.setIrdaReadingFlag(1);
+                                new   PlayAudio().playSuccess(getApplicationContext());
+//                            Thread.sleep(10);
+                                if(irdaVO != null){
+                                    dbAdapter = DBAdapter.getDBAdapterInstance(USB_Activity.this);
+                                    dbAdapter.openDataBase();
+                                    String query = "select * from INPUT_MASTER where trim(printf('%08d',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
+                                    if(irdaVO.getMeterNumber().length() > 8){
+                                        query = "select * from INPUT_MASTER where trim(printf('%s',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
+                                    }
+                                    readrecord = dbAdapter.selectRecordsFromDB(query, null);
+
+                                    if (readrecord.moveToFirst() && !irdaVO.getMeterNumber().trim().isEmpty()) {
+                                        Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Intent intent = new Intent(USB_Activity.this, Search_By_NameActivity.class);
+                                                intent.putExtra("SearchType", "Automatic");
+                                                intent.putExtra("IRDAVO", (Serializable) irdaVO);
+                                                startActivity(intent);
+                                                finish();
+                                            }
+                                        });
+
+                                    } else {
+                                        new PlayAudio().playFail(getApplicationContext());
+                                        display.setText("\n IRDA Three Phase \n MeterNo not found " + irdaVO.getMeterNumber() + "\n");
+                                        display.append("KWH             : " + meter_units +
+                                                "\nKVAH                 : " + ir_curkvah +
+                                                "\nhv_rmd               : " + rmd );
+                                        Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+//                                    alertDialog(irdaVO, "Meter Not found.", BillingMenuActivity.class);
+                                        Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
+                                                i.putExtra("SearchType", "Automatic");
+                                                i.putExtra("IRDAVO", (Serializable) irdaVO);
+                                                startActivity(i);
+                                                finish();
+                                            }
+                                        });
+
+                                    }
+                                }else{
+                                    new PlayAudio().playFail(getApplicationContext());
+                                    display.setText("\n------------------------\n IRDA Three Phase \n Reading issue, try Again.\n");
+                                    Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                                }
+                            }else{
+                                new PlayAudio().playFail(getApplicationContext());
+                                display.setText("\n------------------------\n IRDA Three Phase \n Abnormal Readings received, try Again.\n");
                                 Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
                             }
                         }
@@ -330,6 +755,23 @@ public class USB_Activity extends Activity {
                 w.execute();
             }
         });
+
+
+        Btn_IRDA_1Phase_Delay_Send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isIr3P = false;
+                isIr1P = false;
+                isIrda1P = false;
+                isIrda3P = false;
+                isIrda1PDelay = true;
+
+                display.setText("IRDA Single Phase selected");
+                new AnalogicsUtil().setIRDABaudRate1P(usbService);
+                GetMeterDataAsyncTask w = new GetMeterDataAsyncTask();
+                w.execute();
+            }
+        });
     }
 
     private class GetMeterDataAsyncTask extends AsyncTask<String, String, String> {
@@ -351,7 +793,94 @@ public class USB_Activity extends Activity {
             if (usbService != null)
                 usbService.finalData = "";
             try {
-                if (isIr1P || isIrda1P) {
+                if (isIrda1P) {
+                    usbService.sb = new StringBuilder();
+                    byte[] buffer1 = new byte[11];
+                    //  3A 30 30 34 31 33 42 43 34 0D 0A  //single phase meternumber
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x31;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x42;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x34;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(500);
+                        }
+                    }catch(Exception ex){
+
+                    }
+
+                    buffer1 = new byte[11];
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x33;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x39;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x36;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(500);
+                        }
+                    }catch(Exception ex){
+
+                    }
+
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x36;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x36;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x39;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(500);
+                        }
+                    }catch(Exception ex){
+
+                    }
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x32;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x41;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x35;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(500);
+                        }
+                    }catch(Exception ex){
+
+                    }
+                }else if (isIrda1PDelay) {
                     usbService.sb = new StringBuilder();
                     byte[] buffer1 = new byte[11];
                     //  3A 30 30 34 31 33 42 43 34 0D 0A  //single phase meternumber
@@ -438,6 +967,93 @@ public class USB_Activity extends Activity {
                     }catch(Exception ex){
 
                     }
+                }else if (isIr1P) {
+                    usbService.sb = new StringBuilder();
+                    byte[] buffer1 = new byte[11];
+                    //  3A 30 30 34 31 33 42 43 34 0D 0A  //single phase meternumber
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x31;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x42;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x34;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(200);
+                        }
+                    }catch(Exception ex){
+
+                    }
+
+                    buffer1 = new byte[11];
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x33;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x39;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x36;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(200);
+                        }
+                    }catch(Exception ex){
+
+                    }
+
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x36;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x36;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x39;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(200);
+                        }
+                    }catch(Exception ex){
+
+                    }
+                    buffer1[0] = 0x3A;
+                    buffer1[1] = 0x30;
+                    buffer1[2] = 0x30;
+                    buffer1[3] = 0x34;
+                    buffer1[4] = 0x32;
+                    buffer1[5] = 0x33;
+                    buffer1[6] = 0x41;
+                    buffer1[7] = 0x43;
+                    buffer1[8] = 0x35;
+                    buffer1[9] = 0x0D;
+                    buffer1[10] = 0x0A;
+
+                    try{
+                        if (usbService != null) { // if UsbService was correctly binded, Send data
+                            usbService.write(buffer1);
+                            Thread.sleep(200);
+                        }
+                    }catch(Exception ex){
+
+                    }
                 }else if(isIr3P){
                     usbService.sb = new StringBuilder();
 
@@ -450,7 +1066,7 @@ public class USB_Activity extends Activity {
                     try{
                         if (usbService != null) { // if UsbService was correctly binded, Send data
                             usbService.write(buffer1);
-                            Thread.sleep(1000);
+                            Thread.sleep(100);
                         }
                     }catch(Exception ex){
 
@@ -503,6 +1119,7 @@ public class USB_Activity extends Activity {
             return meterData;
         }
 
+        @SuppressLint("SetTextI18n")
         @Override
         protected void onPostExecute(String bitmap) {
 
@@ -513,7 +1130,7 @@ public class USB_Activity extends Activity {
             try {
                 if (meterData.length() > 0) {
                     IrdaVO irdaVO = null;
-                    if (isIr1P || isIrda1P) {
+                    if (isIr1P || isIrda1P || isIrda1PDelay) {
                         String[] data;
                         if(StringUtils.contains(meterData, "0D0A")){
                             data = meterData.split("0D0A");
@@ -523,6 +1140,7 @@ public class USB_Activity extends Activity {
 
                         if (meterData.length() >= 32) {
                             if (data.length >= 1) {
+                                boolean isValid = true;
                                 HexSupport hex = new HexSupport();
 
                                 String MeterNumber = "";
@@ -530,6 +1148,8 @@ public class USB_Activity extends Activity {
                                 if(isIr1P)
                                     MeterNumber = (hex.hexToAscii(data[1].substring(10, 26))) + "";
                                 else if(isIrda1P)
+                                    MeterNumber = hex.hexToAscii(data[1].substring(10, data[1].length() - 8));
+                                else if(isIrda1PDelay)
                                     MeterNumber = hex.hexToAscii(data[1].substring(10, data[1].length() - 8));
 
                                 try{
@@ -544,6 +1164,9 @@ public class USB_Activity extends Activity {
                                 }
                                 try{
                                     rmd = (hex.hexToAscii(data[5].substring(10, 20))) + "";
+                                    double rmdDbl = Double.parseDouble(rmd);
+                                    if(rmdDbl > 50)
+                                        isValid = false;
                                 }catch(Exception ex){
 
                                 }
@@ -558,25 +1181,37 @@ public class USB_Activity extends Activity {
                                     display.setText("IR - Single Phase Data \n" +
                                             "Meter No     :  " + MeterNumber + "\n" +
                                             "kwh          :  " + kwh + "\n" +
-                                            "kvah         :  " + kvah + "\n" +
+                                            //"kvah         :  " + kvah + "\n" +
                                             "rmd          :  " + rmd + "\n"
                                     );
                                 }else{
                                     display.setText("IRDA - Single Phase Data \n" +
                                             "Meter No     :  " + MeterNumber + "\n" +
                                             "kwh          :  " + kwh + "\n" +
-                                            "kvah         :  " + kvah + "\n" +
+                                            //"kvah         :  " + kvah + "\n" +
                                             "rmd          :  " + rmd + "\n"
                                     );
                                 }
-                                irdaVO = new IrdaVO();
-                                irdaVO.setMeterNumber(MeterNumber);
-                                irdaVO.setKWH(Double.parseDouble(kwh));
-                                irdaVO.setKVAH(Double.parseDouble(kvah));
-                                irdaVO.setHv_rmd(Double.parseDouble(rmd));
-                                irdaVO.setMeterMake(meterMake);
-                                irdaVO.setIrdaReadingFlag(1);
-                                new   PlayAudio().playSuccess(getApplicationContext());
+
+                                if(isValid){
+                                    irdaVO = new IrdaVO();
+                                    irdaVO.setMeterNumber(MeterNumber);
+                                    irdaVO.setKWH(Double.parseDouble(kwh));
+                                    irdaVO.setKVAH(Double.parseDouble(kvah));
+                                    irdaVO.setHv_rmd(Double.parseDouble(rmd));
+                                    irdaVO.setMeterMake(meterMake);
+                                    irdaVO.setIrdaReadingFlag(1);
+                                    new   PlayAudio().playSuccess(getApplicationContext());
+//                                    Thread.sleep(10);
+                                }else{
+                                    new PlayAudio().playFail(getApplicationContext());
+                                    if(isIr1P)
+                                        display.setText("\n------------------------\n IR Single Phase \n Invalid readings received, try Again.\n");
+                                    else
+                                        display.setText("\n------------------------\n IRDA Single Phase \n Invalid readings received, try Again.\n");
+                                    Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                                }
+
 
                             } else {
                                 new PlayAudio().playFail(getApplicationContext());
@@ -585,6 +1220,47 @@ public class USB_Activity extends Activity {
                                 else
                                     display.setText("\n------------------------\n IRDA Single Phase \n MeterNo invalid, try Again.\n");
                                 Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+
+                                numberOfTries++;
+                                switch (numberOfTries){
+                                    case 1:
+                                        Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 2:
+                                        Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 3:
+                                        Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case 4:
+                                        Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                                        AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                                        builder1.setTitle("Alert");
+                                        builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                                        builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                                startActivity(intent);
+                                                finish();
+                                            }
+                                        });
+                                        builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                numberOfTries=0;
+                                            }
+                                        });
+                                        AlertDialog alert = builder1.create();
+                                        alert.show();
+
+                                        if (!isFinishing()){
+                                            alert.show();
+                                        }
+                                        break;
+                                    default:
+                                        numberOfTries = 0;
+                                }
                             }
                         } else {
                             new PlayAudio().playFail(getApplicationContext());
@@ -594,44 +1270,87 @@ public class USB_Activity extends Activity {
                                 display.setText("\n------------------------\n IRDA Single Phase \n MeterNo invalid, try Again.\n");
 
                             Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                            numberOfTries++;
+                            switch (numberOfTries){
+                                case 1:
+                                    Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case 2:
+                                    Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case 3:
+                                    Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                                    break;
+                                case 4:
+                                    Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                                    AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                                    builder1.setTitle("Alert");
+                                    builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                                    builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                            startActivity(intent);
+                                            finish();
+                                        }
+                                    });
+                                    builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            numberOfTries=0;
+                                        }
+                                    });
+                                    AlertDialog alert = builder1.create();
+                                    alert.show();
+
+                                    if (!isFinishing()){
+                                        alert.show();
+                                    }
+                                    break;
+                                default:
+                                    numberOfTries = 0;
+                            }
                         }
                     }else if(isIr3P){
+                        String outputBuff = meterData;
+                        boolean isValid = true;
+                        String MeterNumber = "";
                         try{
-                            String outputBuff = meterData;
+                            MeterNumber = Integer.parseInt(outputBuff.substring(12, 20), 16) + "";
+                        }catch(Exception ex){
 
-                            String MeterNumber = "";
-                            try{
-                                MeterNumber = Integer.parseInt(outputBuff.substring(12, 20), 16) + "";
-                            }catch(Exception ex){
+                        }
 
-                            }
+                        String KWH = "";
+                        try{
+                            KWH = new DecimalFormat("##.##").format((double) (Integer.parseInt(outputBuff.substring(30, 38), 16)) / 1000) + "";
+                        }catch(Exception ex){
 
-                            String KWH = "";
-                            try{
-                                KWH = new DecimalFormat("##.##").format((double) (Integer.parseInt(outputBuff.substring(30, 38), 16)) / 1000) + "";
-                            }catch(Exception ex){
+                        }
+                        String KvaH = "";
+                        try{
+                            KvaH = new DecimalFormat("##.##").format((double) (Integer.parseInt(outputBuff.substring(54, 62), 16)) / 1000) + "";
+                        }catch(Exception ex){
 
-                            }
-                            String KvaH = "";
-                            try{
-                                KvaH = new DecimalFormat("##.##").format((double) (Integer.parseInt(outputBuff.substring(54, 62), 16)) / 1000) + "";
-                            }catch(Exception ex){
+                        }
 
-                            }
+                        String rmd = "";
+                        try{
+                            rmd = new DecimalFormat("##.##").format((double) (Integer.parseInt(outputBuff.substring(64, 68), 16)) / 1000) + "";
+                            double rmdDouble = Double.parseDouble(rmd);
+                            if(rmdDouble > 50)
+                                isValid = false;
+                        }catch(Exception ex){
 
-                            String rmd = "";
-                            try{
-                                rmd = new DecimalFormat("##.##").format((double) (Integer.parseInt(outputBuff.substring(64, 68), 16)) / 1000) + "";
-                            }catch(Exception ex){
+                        }
+                        display.setText("IR Three Phase Data \n" +
+                                "Meter No     :  " + MeterNumber + "\n" +
+                                "kwh          :  " + KWH + "\n" +
+                                "kvah         :  " + KvaH + "\n" +
+                                "rmd          :  " + rmd + "\n"
+                        );
 
-                            }
-                            display.setText("IR Three Phase Data \n" +
-                                    "Meter No     :  " + MeterNumber + "\n" +
-                                    "kwh          :  " + KWH + "\n" +
-                                    "kvah         :  " + KvaH + "\n" +
-                                    "rmd          :  " + rmd + "\n"
-                            );
-
+                        if(isValid){
                             irdaVO = new IrdaVO();
                             irdaVO.setMeterNumber(MeterNumber);
                             irdaVO.setKWH(Double.parseDouble(KWH));
@@ -640,12 +1359,13 @@ public class USB_Activity extends Activity {
                             irdaVO.setMeterMake("");
                             irdaVO.setIrdaReadingFlag(1);
                             new   PlayAudio().playSuccess(getApplicationContext());
-
-                        }catch(Exception ex){
+//                            Thread.sleep(10);
+                        }else{
                             new PlayAudio().playFail(getApplicationContext());
-                            display.setText("\n------------------------\n IR Three Phase \n Reading failed, try Again.\n");
+                            display.setText("\n------------------------\n IR Three Phase \n Invalid Readings received, try Again.\n");
                             Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
                         }
+
                     }else if(isIrda3P){
                         AnalogicsUtil util = new AnalogicsUtil();
                         display.setText("       3 Phase Data >>> \n" + meterData + "\n");
@@ -676,11 +1396,18 @@ public class USB_Activity extends Activity {
                         readrecord = dbAdapter.selectRecordsFromDB(query, null);
 
                         if (readrecord.moveToFirst() && !irdaVO.getMeterNumber().trim().isEmpty()) {
-                            Intent intent = new Intent(USB_Activity.this, Search_By_NameActivity.class);
-                            intent.putExtra("SearchType", "Automatic");
-                            intent.putExtra("IRDAVO", (Serializable) irdaVO);
-                            startActivity(intent);
-                            finish();
+                            IrdaVO finalIrdaVO = irdaVO;//srinu
+                            Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(USB_Activity.this, Search_By_NameActivity.class);
+                                    intent.putExtra("SearchType", "Automatic");
+                                    intent.putExtra("IRDAVO", (Serializable) finalIrdaVO);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+
                         } else {
                             new PlayAudio().playFail(getApplicationContext());
                             if(isIr1P)
@@ -692,15 +1419,24 @@ public class USB_Activity extends Activity {
                             else if(isIrda1P)
                                 display.setText("\n------------------------\n IRDA Single Phase \n Meter Number Not Found " + irdaVO.getMeterNumber() + "\n"
                                         + "KWH : " + irdaVO.getKWH() + "\n" + "RMD : " + irdaVO.getHv_rmd() + "\n");
+                            else if(isIrda1PDelay)
+                                display.setText("\n------------------------\n IRDA Single Phase \n Meter Number Not Found " + irdaVO.getMeterNumber() + "\n"
+                                        + "KWH : " + irdaVO.getKWH() + "\n" + "RMD : " + irdaVO.getHv_rmd() + "\n");
 
                             Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
-                            alertDialog(irdaVO, "Meter Number Not Found.", BillingMenuActivity.class);
+//                            alertDialog(irdaVO, "Meter Number Not Found.", BillingMenuActivity.class);
+                            IrdaVO finalIrdaVO1 = irdaVO;
+                            Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
+                                    i.putExtra("SearchType", "Automatic");
+                                    i.putExtra("IRDAVO", (Serializable) finalIrdaVO1);
+                                    startActivity(i);
+                                    finish();
+                                }
+                            });
 
-                            Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
-                            i.putExtra("SearchType", "Automatic");
-                            i.putExtra("IRDAVO", (Serializable) irdaVO);
-                            startActivity(i);
-                            finish();
 
                         }
                     }else{
@@ -713,7 +1449,49 @@ public class USB_Activity extends Activity {
                             display.setText("\n------------------------\n IRDA Three Phase \n Reading issue, try Again.\n");
                         else if(isIrda1P)
                             display.setText("\n------------------------\n IRDA Single Phase \n Reading issue, try Again.\n");
+                        else if(isIrda1PDelay)
+                            display.setText("\n------------------------\n IRDA Single Phase \n Reading issue, try Again.\n");
                         Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                        numberOfTries++;
+                        switch (numberOfTries){
+                            case 1:
+                                Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 2:
+                                Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 3:
+                                Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                                break;
+                            case 4:
+                                Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                                AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                                builder1.setTitle("Alert");
+                                builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                                builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                });
+                                builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        numberOfTries=0;
+                                    }
+                                });
+                                AlertDialog alert = builder1.create();
+                                alert.show();
+
+                                if (!isFinishing()){
+                                    alert.show();
+                                }
+                                break;
+                            default:
+                                numberOfTries = 0;
+                        }
                     }
                 } else {
                     new PlayAudio().playFail(getApplicationContext());
@@ -725,13 +1503,96 @@ public class USB_Activity extends Activity {
                         display.setText("\n------------------------\n IRDA Three Phase \n Reading issue, try Again.\n");
                     else if(isIrda1P)
                         display.setText("\n------------------------\n IRDA Single Phase \n Reading issue, try Again.\n");
+                    else if(isIrda1PDelay)
+                        display.setText("\n------------------------\n IRDA Single Phase \n Reading issue, try Again.\n");
                     Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+                    numberOfTries++;
+                    switch (numberOfTries){
+                        case 1:
+                            Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 2:
+                            Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 3:
+                            Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                            break;
+                        case 4:
+                            Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                            AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                            builder1.setTitle("Alert");
+                            builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                            builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+                            builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    numberOfTries=0;
+                                }
+                            });
+                            AlertDialog alert = builder1.create();
+                            alert.show();
+
+                            if (!isFinishing()){
+                                alert.show();
+                            }
+                            break;
+                        default:
+                            numberOfTries = 0;
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
                 display.setText("Please place the device correctly in front of meter");
                 new PlayAudio().playFail(getApplicationContext());
+
+                numberOfTries++;
+                switch (numberOfTries){
+                    case 1:
+                        Toast.makeText(USB_Activity.this, "3 Tries left", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 2:
+                        Toast.makeText(USB_Activity.this, "2 Tries left", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 3:
+                        Toast.makeText(USB_Activity.this, "1 try left ", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 4:
+                        Toast.makeText(USB_Activity.this, "you have tried too many times", Toast.LENGTH_LONG).show();
+                        AlertDialog.Builder builder1 = new AlertDialog.Builder(USB_Activity.this);
+                        builder1.setTitle("Alert");
+                        builder1.setMessage("Do you want Proceed to Billing with ImageBilling");
+                        builder1.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(USB_Activity.this, Billing_SearchBy_Activity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+                        builder1.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                numberOfTries=0;
+                            }
+                        });
+                        AlertDialog alert = builder1.create();
+                        alert.show();
+
+                        if (!isFinishing()){
+                            alert.show();
+                        }
+                        break;
+                    default:
+                        numberOfTries = 0;
+                }
             }
         }
     }
@@ -819,6 +1680,7 @@ public class USB_Activity extends Activity {
 
             try {
                 if (meterData.length() > 100) {
+                    boolean isValid = true;
                     System.out.println("Received meterData2  ->meterData:" + meterData);
                     //   Toast.makeText(MainActivity.this,meterData, Toast.LENGTH_LONG).show();
                     meterData = meterData.substring(22);
@@ -849,6 +1711,14 @@ public class USB_Activity extends Activity {
                     String hv_rmd = meterData.substring(98, 100) + meterData.substring(96, 98);
                     String rmd = (Integer.parseInt(hv_rmd, 16) / 100.00) + "";
 
+                    try{
+                        double rmdDouble = Double.parseDouble(rmd);
+                        if(rmdDouble > 50){
+                            isValid = false;
+                        }
+                    }catch(Exception ex){
+
+                    }
                     //57 56 55
                     String hexMeterNumber = meterData.substring(18, 20) + meterData.substring(16, 18) + meterData.substring(14, 16);
                     String meterNumber = Integer.parseInt(hexMeterNumber, 16) + "";
@@ -874,57 +1744,66 @@ public class USB_Activity extends Activity {
                             "\nCurrent_Y_IY  : " + current_Y_IY +
                             "\nCurrent_B_IB  : " + current_B_IB + "\n------------------------\n");
 
-//                    display.setText("\n------------------------\n         IRDA 3 Phase " +
-//                            "\nMeterNo       >>> " + meterNumber);
-//                    display.append("\nvoltage_R_VR  >>> " + voltage_R_VR +
-//                            "\nvoltage_Y_VY    >>> " + voltage_Y_VY +
-//                            "\nvoltage_B_VB    >>> " + voltage_B_VB +
-//                            "\ncurrent_R_IR    >>> " + current_R_IR +
-//                            "\ncurrent_Y_IY    >>> " + current_Y_IY +
-//                            "\ncurrent_B_IB    >>> " + current_B_IB +
-//                            "\nKWH             >>> " + meter_units +
-//                            "\nKVAH            >>> " + ir_curkvah +
-//                            "\nhv_rmd          >>> " + rmd + "\n------------------------\n");
 
-                    IrdaVO irdaVO = new IrdaVO();
-                    irdaVO.setMeterNumber(meterNumber);
-                    irdaVO.setVoltage_R_VR(Double.parseDouble(voltage_R_VR));
-                    irdaVO.setVoltage_Y_VY(Double.parseDouble(voltage_Y_VY));
-                    irdaVO.setVoltage_B_VB(Double.parseDouble(voltage_B_VB));
-                    irdaVO.setCurrent_R_IR(Double.parseDouble(current_R_IR));
-                    irdaVO.setCurrent_Y_IY(Double.parseDouble(current_Y_IY));
-                    irdaVO.setCurrent_B_IB(Double.parseDouble(current_B_IB));
-                    irdaVO.setMeterMake(meterMake);
+                    if(isValid){
+                        IrdaVO irdaVO = new IrdaVO();
+                        irdaVO.setMeterNumber(meterNumber);
+                        irdaVO.setVoltage_R_VR(Double.parseDouble(voltage_R_VR));
+                        irdaVO.setVoltage_Y_VY(Double.parseDouble(voltage_Y_VY));
+                        irdaVO.setVoltage_B_VB(Double.parseDouble(voltage_B_VB));
+                        irdaVO.setCurrent_R_IR(Double.parseDouble(current_R_IR));
+                        irdaVO.setCurrent_Y_IY(Double.parseDouble(current_Y_IY));
+                        irdaVO.setCurrent_B_IB(Double.parseDouble(current_B_IB));
+                        irdaVO.setMeterMake(meterMake);
 
-                    irdaVO.setKWH(Double.parseDouble(meter_units));
-                    irdaVO.setKVAH(Double.parseDouble(ir_curkvah));
-                    irdaVO.setHv_rmd(Double.parseDouble(rmd));
-                    irdaVO.setIrdaReadingFlag(1);
-                    new PlayAudio().playSuccess(getApplicationContext());
+                        irdaVO.setKWH(Double.parseDouble(meter_units));
+                        irdaVO.setKVAH(Double.parseDouble(ir_curkvah));
+                        irdaVO.setHv_rmd(Double.parseDouble(rmd));
+                        irdaVO.setIrdaReadingFlag(1);
+                        new PlayAudio().playSuccess(getApplicationContext());
+//                        Thread.sleep(10);
 
-                    dbAdapter = DBAdapter.getDBAdapterInstance(USB_Activity.this);
-                    dbAdapter.openDataBase();
-                    String query = "select * from INPUT_MASTER where trim(printf('%08d',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
-                    readrecord = dbAdapter.selectRecordsFromDB(query, null);
+                        dbAdapter = DBAdapter.getDBAdapterInstance(USB_Activity.this);
+                        dbAdapter.openDataBase();
+                        String query = "select * from INPUT_MASTER where trim(printf('%08d',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
+                        readrecord = dbAdapter.selectRecordsFromDB(query, null);
 
-                    if (readrecord.moveToFirst() && !irdaVO.getMeterNumber().trim().isEmpty()) {
-                        Intent intent = new Intent(USB_Activity.this, USB_Activity.class); //Search_By_NameActivity
-                        intent.putExtra("IRDAVO", (Serializable) irdaVO);
-                        intent.putExtra("SearchType", "Automatic");
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        alertDialog(irdaVO, "Meter Not found(1).", BillingMenuActivity.class);
-                        Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
-                        i.putExtra("SearchType", "Automatic");
-                        i.putExtra("IRDAVO", (Serializable) irdaVO);
-                        startActivity(i);
-                        finish();
+                        if (readrecord.moveToFirst() && !irdaVO.getMeterNumber().trim().isEmpty()) {
+                            Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent intent = new Intent(USB_Activity.this, Search_By_NameActivity.class); //Search_By_NameActivity
+                                    intent.putExtra("IRDAVO", (Serializable) irdaVO);
+                                    intent.putExtra("SearchType", "Automatic");
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+
+                        } else {
+//                            alertDialog(irdaVO, "Meter Not found(1).", BillingMenuActivity.class);
+                            Btn_nextIR_IRDA.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    Intent i = new Intent(getBaseContext(), Billing_SearchBy_Activity.class);
+                                    i.putExtra("SearchType", "Automatic");
+                                    i.putExtra("IRDAVO", (Serializable) irdaVO);
+                                    startActivity(i);
+                                    finish();
+                                }
+                            });
+
+                        }
+                    }else{
+                        display.setText("\n IRDA Three Phase \n Abnormal RMD received " + irdaVO.getHv_rmd() + "\n");
+                        Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
+//                        alertDialog(irdaVO, "\n IRDA Three Phase \n Abnormal RMD received", BillingMenuActivity.class);
                     }
                 } else {
                     display.setText("\n IRDA Three Phase \n MeterNo not found " + irdaVO.getMeterNumber() + "\n");
                     Toast.makeText(USB_Activity.this, "Try Again. ", Toast.LENGTH_LONG).show();
-                       alertDialog(irdaVO, "Meter Number Not Found.", BillingMenuActivity.class);
+//                       alertDialog(irdaVO, "Meter Number Not Found.", BillingMenuActivity.class);
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();

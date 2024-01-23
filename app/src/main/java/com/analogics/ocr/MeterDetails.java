@@ -19,9 +19,7 @@ public class MeterDetails {
 
     public static MeterData kwhData = new MeterData("", "", "", MeterType.kwh, false, "");
     public static MeterData kvahData = new MeterData("", "", "", MeterType.Kvah, false, "");
-
     public static MeterData RmdData = new MeterData("", "", "", MeterType.Rmd, false, "");
-
     public static MeterData FullImageData = new MeterData("", "", "", MeterType.FullPhoto, false, "");
 
     public static void saveBase64ToImageFile(Context context, String serviceNumber) {
