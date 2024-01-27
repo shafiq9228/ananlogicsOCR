@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:padding="@dimen/dimen_20dp"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    tools:context=".ocr.OfflineOcrInsertActivity">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="title"
+        android:textAllCaps="true"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:id="@+id/titleTv"
+        android:padding="@dimen/dimen_12dp"
+        android:textColor="@color/black"
+        android:textSize="16sp"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="@dimen/dimen_100dp"
+            android:layout_height="@dimen/dimen_100dp"
+            android:src="@drawable/border_black_transparent"
+            android:id="@+id/kwhImageView"
+            android:maxWidth="@dimen/dimen_100dp"
+            android:maxHeight="@dimen/dimen_100dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:paddingHorizontal="@dimen/dimen_8dp"
+            android:layout_marginLeft="@dimen/dimen_12dp"
+            android:background="@drawable/input_stroke"
+            android:text="Capture KWH IMAGE"
+            android:id="@+id/kwhImageBtn"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/dimen_12dp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:id="@+id/kvahLayout"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="@dimen/dimen_100dp"
+            android:layout_height="@dimen/dimen_100dp"
+            android:src="@drawable/border_black_transparent"
+            android:id="@+id/kvahImageView"
+            android:maxWidth="@dimen/dimen_100dp"
+            android:maxHeight="@dimen/dimen_100dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:paddingHorizontal="@dimen/dimen_8dp"
+            android:layout_marginLeft="@dimen/dimen_12dp"
+            android:background="@drawable/input_stroke"
+            android:text="Capture KVAH IMAGE"
+            android:id="@+id/kvahButton"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/dimen_12dp"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="@dimen/dimen_100dp"
+            android:layout_height="@dimen/dimen_100dp"
+            android:src="@drawable/border_black_transparent"
+            android:id="@+id/mdImageView"
+            android:maxWidth="@dimen/dimen_100dp"
+            android:maxHeight="@dimen/dimen_100dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:paddingHorizontal="@dimen/dimen_8dp"
+            android:layout_marginLeft="@dimen/dimen_12dp"
+            android:background="@drawable/input_stroke"
+            android:text="Capture MD IMAGE"
+            android:id="@+id/mdImageBtn"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/dimen_12dp"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="@dimen/dimen_100dp"
+            android:layout_height="@dimen/dimen_100dp"
+            android:src="@drawable/border_black_transparent"
+            android:id="@+id/fullImageView"
+            android:maxWidth="@dimen/dimen_100dp"
+            android:maxHeight="@dimen/dimen_100dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:layout_width="match_parent"
+            android:paddingHorizontal="@dimen/dimen_8dp"
+            android:layout_marginLeft="@dimen/dimen_12dp"
+            android:background="@drawable/input_stroke"
+            android:text="Capture Full IMAGE"
+            android:id="@+id/fullImageBtn"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/saveBtn"
+        android:text="Save"
+        android:layout_marginTop="@dimen/dimen_20dp"/>
+
+</LinearLayout>

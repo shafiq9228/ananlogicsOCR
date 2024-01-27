@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,15 +14,17 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.telephony.gsm.SmsManager;
 import android.text.InputFilter;
 import android.text.InputType;
-import android.util.Base64;
+import android.util.Base64OutputStream;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -43,7 +47,9 @@ import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
 import com.analogics.billingCalculation.Tsspdcl_FileWriting;
 import com.analogics.ocr.CameraActivity;
+import com.analogics.ocr.FileUtil;
 import com.analogics.ocr.ImageSheet;
+import com.analogics.ocr.MeterData;
 import com.analogics.ocr.MeterDetails;
 import com.analogics.ocr.MeterType;
 import com.analogics.pojo.ConsumerDataVO;
@@ -59,6 +65,11 @@ import com.analogics.utils.DateUtil;
 import com.analogics.utils.FileOperations;
 import com.analogics.utils.GetIMEI_Number;
 import com.analogics.utils.PublicVariables;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.whty.smartpos.tysmartposapi.ITYSmartPosApi;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrintElement;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterConstant;
@@ -66,13 +77,30 @@ import com.whty.smartpos.tysmartposapi.modules.printer.PrinterInitListener;
 import com.whty.smartpos.tysmartposapi.modules.printer.PrinterListener;
 
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+
+import id.zelory.compressor.Compressor;
 
 
 public class Search_By_NameActivity extends AppCompatActivity {
     String portNo1 = "/dev/ttyHS0";
     //Tsspdcl_BillingCalculation globalVbls = new Tsspdcl_BillingCalculation(); 220124
+
+//    openOcrCamera(false, MeterType.Rmd, "");
+    boolean disableOCr;
+    MeterType meterType;
+    String previousValue = "";
+
 
     Tsspdcl_FileWriting uploadFile;
     EditText ET_ServiceNo;
@@ -166,6 +194,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
     Button kwhPhotoBtn;
     Button kwhDialogFullImageBtn;
     TextView kwhDialogAttemptTv;
+    TextView kwhAutoExtractTv;
     boolean isIrIrdaReading = false;
 
     @Override
@@ -678,10 +707,12 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
         kwhPhotoBtn = Btn_photo;
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
+        kwhAutoExtractTv = alertLayout.findViewById(R.id.autoExtractTv);
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
+
             openOcrCamera(false, MeterType.Rmd, "");
 
         });
@@ -746,6 +777,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhPhotoBtn = Btn_photo;
         kwhDialogEditText = editText;
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
+        kwhAutoExtractTv = alertLayout.findViewById(R.id.autoExtractTv);
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
 
         numberOfTries = 0;
@@ -1243,15 +1275,21 @@ public class Search_By_NameActivity extends AppCompatActivity {
     }
 
 
-    private void openOcrCamera(boolean disableOcr,
+    private void openOcrCamera(boolean isOcrDisable,
                                MeterType ocrType,  String prevValue) {
+
+        disableOCr = isOcrDisable;
+        previousValue = prevValue;
+        meterType = ocrType;
+
         Intent intent = new Intent(Search_By_NameActivity.this, CameraActivity.class);
-        intent.putExtra("disableOcr", disableOcr);
+        intent.putExtra("disableOcr", isOcrDisable);
         intent.putExtra("type", ocrType.toString());
         intent.putExtra("phase", meterPhaseType);
         intent.putExtra("serviceNumber", meterSerialNumber);
         intent.putExtra("prevValue", prevValue);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        intent.putExtra("isFromAutoExtract", (ocrType != MeterType.FullPhoto));
         startActivityForResult(intent, 111);
     }
 
@@ -2007,6 +2045,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
         kwhPhotoBtn = Btn_photo;
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
+        kwhAutoExtractTv = alertLayout.findViewById(R.id.autoExtractTv);
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
@@ -2071,6 +2110,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhPhotoBtn = Btn_photo;
         kwhDialogEditText = editText;
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
+        kwhAutoExtractTv = alertLayout.findViewById(R.id.autoExtractTv);
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
 
         numberOfTries = 0;
@@ -2271,18 +2311,72 @@ public class Search_By_NameActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (data == null) return;
-
-        String meterNumber = data.getStringExtra("meterNumber");
-
-        if (MeterDetails.outputBase64 != null && kwhDialogImageView != null) {
-            byte[] decodedString = Base64.decode(MeterDetails.outputBase64, Base64.DEFAULT);
-            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+        String imageUri = data.getStringExtra("imageUri");
+        if(imageUri == null) return;
+        try {
             kwhDialogImageView.setVisibility(View.VISIBLE);
-            kwhDialogImageView.setImageBitmap(decodedByte);
+            kwhDialogImageView.setImageURI(Uri.parse(imageUri));
             kwhDialogFullImageBtn.setOnClickListener(view -> {
                 ImageSheet imageSheet = new ImageSheet(MeterDetails.fullImageBitmap);
                 imageSheet.show(getSupportFragmentManager(), "");
             });
+           File actualFile = FileUtil.from(getApplicationContext(), Uri.parse(imageUri));
+            File compressImage = new Compressor(getApplicationContext()).setMaxWidth(1080).setMaxHeight(520).setQuality(60).setCompressFormat(Bitmap.CompressFormat.JPEG).setDestinationDirectoryPath(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).compressToFile(actualFile);
+            String croppedBase64 = convertImageFileToBase64(compressImage);
+            hitOCRApi(croppedBase64);
+
+        } catch (Exception e) {
+            runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Take Picture Catch: " + e, Toast.LENGTH_SHORT).show());
+
+        }
+    }
+
+    private void hitOCRApi(String imageBase64) {
+        try {
+            kwhAutoExtractTv.setText("Auto Extracting...");
+            kwhAutoExtractTv.setTextColor(Color.WHITE);
+            String dateFormat = "yyyyMMddHHmmss";
+            MeterDetails.outputBase64 = null;
+            ClipData clipData = ClipData.newPlainText("Google", imageBase64);
+            ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);
+            String url = "https://todoapp-d9a67.el.r.appspot.com/fetchMeterNumber";
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("img", imageBase64);
+            RequestQueue requestQueue = Volley.newRequestQueue(this);
+            kwhAutoExtractTv.setVisibility(View.VISIBLE);
+            JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, url, jsonObject, jsonObjResp -> {
+                try {
+                    String meterNumber = jsonObjResp.getJSONObject("data").getString("meterNumber");
+                    if (meterNumber.equals("")) {
+                        meterNumber = " ";
+                    }
+
+                    MeterDetails.outputBase64 = jsonObjResp.getJSONObject("data").getString("outputImage");
+                     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
+                    Date currentDate = new Date();
+                    String currentDateFormat = sdf.format(currentDate);
+
+//                    if(StringUtils.equalsIgnoreCase(ocrType, MeterType.kwh.toString()) ||
+//                            StringUtils.equalsIgnoreCase(ocrType, MeterType.Kvah.toString())){
+//                        meterNumber = compareValues(prevValue, meterNumber);
+//                    }
+
+                    MeterData data = new MeterData(meterNumber,
+                            currentDateFormat, meterPhaseType, null, false, MeterDetails.outputBase64);
+
+                    if (meterType.toString().equals(MeterType.kwh.toString())) {
+                        data.setType(MeterType.kwh);
+                        MeterDetails.kwhData = data;
+                    } else if (meterType.toString().equals(MeterType.Kvah.toString())) {
+                        data.setType(MeterType.Kvah);
+                        MeterDetails.kvahData = data;
+                    } else if (meterType.toString().equals(MeterType.Rmd.toString())) {
+                        data.setType(MeterType.Rmd);
+                        MeterDetails.RmdData = data;
+                    }
+
+
+        if (MeterDetails.outputBase64 != null && kwhDialogImageView != null) {
             kwhDialogFullImageBtn.setOnClickListener(view -> {
                 ImageSheet imageSheet = new ImageSheet(MeterDetails.fullImageBitmap);
                 imageSheet.show(getSupportFragmentManager(), "");
@@ -2291,9 +2385,11 @@ public class Search_By_NameActivity extends AppCompatActivity {
             kwhDialogImageView.setVisibility(View.GONE);
         }
 
-        if (meterNumber != null && kwhDialogEditText != null) {
+        if (kwhDialogEditText != null) {
             numberOfTries = numberOfTries + 1;
-            kwhDialogAttemptTv.setText("Attempts " + numberOfTries);
+            if(kwhDialogAttemptTv != null){
+                kwhDialogAttemptTv.setText("Attempts " + numberOfTries);
+            }
             if (numberOfTries == 3) {
                 numberOfTries = 0;
                 kwhPhotoBtn.setVisibility(View.GONE);
@@ -2303,6 +2399,61 @@ public class Search_By_NameActivity extends AppCompatActivity {
             }
             kwhDialogEditText.setText(meterNumber);
 
+        }
+                    kwhAutoExtractTv.setText(""+meterNumber);
+                    kwhAutoExtractTv.setTextColor(Color.GREEN);
+                 //   kwhAutoExtractTv.setVisibility(View.GONE);
+
+                } catch (Exception e) {
+                    kwhAutoExtractTv.setText("Capture Failed");
+                    kwhAutoExtractTv.setTextColor(Color.RED);
+                    kwhAutoExtractTv.setVisibility(View.VISIBLE);
+                    Toast.makeText(getApplicationContext(), "Meter Number Not Found", Toast.LENGTH_SHORT).show();
+
+                }
+            }, volleyError -> {
+                kwhAutoExtractTv.setText("Capture Failed");
+                kwhAutoExtractTv.setTextColor(Color.RED);
+               // kwhAutoExtractTv.setVisibility(View.GONE);
+                Toast.makeText(getApplicationContext(), "Error 2 " + volleyError.toString(), Toast.LENGTH_SHORT).show();
+
+            });
+            jsonRequest.setRetryPolicy(new DefaultRetryPolicy(20000, 5, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            requestQueue.add(jsonRequest);
+        } catch (Exception e) {
+
+            kwhAutoExtractTv.setVisibility(View.GONE);
+            Toast.makeText(getApplicationContext(), "Error 3 " + e, Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    public String convertImageFileToBase64(File file) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            try (Base64OutputStream base64FilterStream = new Base64OutputStream(outputStream, android.util.Base64.DEFAULT)) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    try (InputStream inputStream = Files.newInputStream(file.toPath())) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            base64FilterStream.write(buffer, 0, bytesRead);
+                        }
+                    }
+                } else {
+                    try (InputStream inputStream = new FileInputStream(file)) {
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            base64FilterStream.write(buffer, 0, bytesRead);
+                        }
+                    }
+                }
+            }
+            return outputStream + "";
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return null;
         }
     }
 }

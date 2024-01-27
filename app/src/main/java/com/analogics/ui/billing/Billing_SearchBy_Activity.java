@@ -27,6 +27,7 @@ import com.analogics.DBAdapter.BillingDAO;
 import com.analogics.DBAdapter.DBAdapter;
 import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
+import com.analogics.ocr.OfflineOcrInsertActivity;
 import com.analogics.pojo.ConsumerDataVO;
 import com.analogics.pojo.IrdaVO;
 import com.analogics.pojo.inputDataVO;
@@ -322,6 +323,16 @@ public class Billing_SearchBy_Activity extends Activity {
                 System.out.println("Query>>" + query);
                 readrecord = dbAdapter.selectRecordsFromDB(query, null);
                 if (readrecord.moveToFirst()) {
+
+                    Button offlineBtn  =   findViewById(R.id.offlineBtn);
+
+                    offlineBtn.setVisibility(View.VISIBLE);
+                    offlineBtn.setOnClickListener(view -> {
+                        Intent offlineIntent = new Intent(Billing_SearchBy_Activity.this, OfflineOcrInsertActivity.class);
+                        offlineIntent.putExtra("serviceNumber", ET_ServiceNo.getText().toString());
+                        offlineIntent.putExtra("phase",ET_Phase.getText().toString());
+                        startActivity(offlineIntent);
+                    });
                     ET_ServiceNo.setText(readrecord.getString(0).trim());
                     ET_Name.setText(readrecord.getString(3).trim());
                     ET_Address.setText(readrecord.getString(4).trim());

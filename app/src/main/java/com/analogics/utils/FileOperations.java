@@ -7,12 +7,8 @@ import android.util.Log;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 
 public class FileOperations {
 	static String sdcardPath= Environment.getExternalStorageDirectory()+"/Android/";
@@ -25,6 +21,7 @@ public class FileOperations {
 	String _IN_FILEPATH_1 = sdcardPath+"TSSPDCL/server/in/";
 	String _OUT_FILEPATH_1 = sdcardPath+"TSSPDCL/server/out/";
 	String _TEMP_FILEPATH_1 = sdcardPath+"TSSPDCL/server/temp/";
+	String _OFFLINE_PATH = sdcardPath+"TSSPDCL_OFFLINE_IMAGES";
 
 	String DB_PATH = sdcardPath;
 
@@ -45,6 +42,10 @@ public class FileOperations {
 		File DB_dir = new File(DB_PATH);
 		if(!(DB_dir.exists())) {
 			DB_dir.mkdir();
+		}
+		File DB_dir_OFFLINE = new File(_OFFLINE_PATH);
+		if(!(DB_dir_OFFLINE.exists())) {
+			DB_dir_OFFLINE.mkdir();
 		}
 		File in_dir = new File(_IN_FILEPATH);
 		if(!(in_dir.exists())) {

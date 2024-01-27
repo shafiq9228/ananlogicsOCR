@@ -135,6 +135,16 @@ public class CameraActivity extends AppCompatActivity {
                 MeterDetails.fullImageBitmap = savedBitmap;
                 File actualFile;
                 Bitmap croppedBitmap;
+                boolean isFromAutoExtract = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("isFromAutoExtract", false));
+                if(isFromAutoExtract){
+                    Intent intent = new Intent();
+                    croppedBitmap = Bitmap.createBitmap(savedBitmap, 0, (savedBitmap.getHeight() / 2) - 650, savedBitmap.getWidth(), 1300);
+                    Uri croppedUri = bitmapToUri(croppedBitmap);
+                    intent.putExtra("imageUri", croppedUri.toString());
+                    setResult(1, intent);
+                    finish();
+                    return;
+                }
                 boolean isFromFullImage = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("disableOcr", false));
                 if (isFromFullImage) {
                     try {
@@ -147,6 +157,8 @@ public class CameraActivity extends AppCompatActivity {
                         MeterDetails.outputBase64 = convertImageFileToBase64(fullImage);
                         MeterDetails.FullImageData = new MeterData("", currentDateFormat, phase, MeterType.FullPhoto, false, MeterDetails.outputBase64);
                         Intent intent = new Intent();
+                        Uri croppedUri = bitmapToUri(savedBitmap);
+                        intent.putExtra("imageUri", croppedUri.toString());
                         setResult(1, intent);
                         finish();
                         return;
@@ -160,8 +172,15 @@ public class CameraActivity extends AppCompatActivity {
                     croppedBitmap = Bitmap.createBitmap(savedBitmap, 0, (savedBitmap.getHeight() / 2) - 650, savedBitmap.getWidth(), 1300);
                 }
 
-
                 Uri croppedUri = bitmapToUri(croppedBitmap);
+                boolean isFromOfflineMode = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("isFromOfflineMode", false));
+                if (isFromOfflineMode){
+                    Intent intent = new Intent();
+                    intent.putExtra("imageUri", croppedUri.toString());
+                    setResult(1, intent);
+                    finish();
+                    return;
+                }
 
                 try {
                     actualFile = FileUtil.from(getApplicationContext(), croppedUri);
@@ -189,6 +208,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private void hitOCRApi(String imageBase64) {
         try {
+
             MeterDetails.outputBase64 = null;
             ClipData clipData = ClipData.newPlainText("Google", imageBase64);
             ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);

@@ -15,43 +15,68 @@
         android:textColor="@color/white"
         android:textStyle="bold" />
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:orientation="vertical"
         android:background="@color/purple_900"
-        android:orientation="horizontal"
-        android:padding="@dimen/dimen_12dp">
+        android:layout_height="wrap_content">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:orientation="horizontal"
+            android:padding="@dimen/dimen_12dp">
+
+            <TextView
+                android:id="@+id/attemptTv"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:text="Attempts: 0"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/imageSheetBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
+                android:backgroundTint="@color/purple"
+                android:text="View Full Image"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:visibility="visible" />
+
+
+        </FrameLayout>
 
         <TextView
-            android:id="@+id/attemptTv"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:text="Attempts: 0"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Auto Extracting..."
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:textSize="16sp"
+            android:layout_marginBottom="@dimen/dimen_12dp"
+            android:id="@+id/autoExtractTv"
+            android:textAlignment="center"
+            android:textColor="@color/white"/>
+    </LinearLayout>
 
-        <Button
-            android:id="@+id/imageSheetBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_gravity="end"
-            android:backgroundTint="@color/purple"
-            android:text="View Full Image"
-            android:textColor="@color/white"
-            android:textSize="10sp"
-            android:visibility="visible" />
 
-    </FrameLayout>
+
+
 
     <ImageView
         android:id="@+id/Meter_Image_View"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dimen_150dp"
         android:maxHeight="@dimen/dimen_150dp"
-
         android:visibility="gone" />
+
+
 
 
     <EditText

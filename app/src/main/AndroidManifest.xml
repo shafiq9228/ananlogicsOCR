@@ -94,6 +94,15 @@
                 android:value="" />
         </activity>
         <activity
+            android:name=".ocr.OfflineImagesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ocr.OfflineFolderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ocr.OfflineOcrInsertActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.menu.SasaBillPrintActivity"
             android:exported="false">
             <meta-data
