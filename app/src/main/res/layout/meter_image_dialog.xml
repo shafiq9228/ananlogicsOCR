@@ -69,15 +69,30 @@
             android:text="Back"
             android:textColor="@color/white" />
 
-        <Button
-            android:id="@+id/Btn_photo"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:backgroundTint="@color/purple_900"
-            android:text="Photo"
-            android:textColor="@color/white" />
+            android:layout_weight="1">
+
+            <Button
+                android:id="@+id/Btn_Gallery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/purple_900"
+                android:text="Gallery"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/Btn_photo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/purple_900"
+                android:text="Photo"
+                android:textColor="@color/white" />
+        </FrameLayout>
 
         <Button
             android:id="@+id/Btn_next"

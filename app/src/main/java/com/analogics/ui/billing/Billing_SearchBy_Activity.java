@@ -52,6 +52,7 @@ import java.util.List;
 public class Billing_SearchBy_Activity extends Activity {
 
     String portNo1 = "/dev/ttyHS0";
+    String serviceNumber;
     ConsumerDataVO consumerDataVO = new ConsumerDataVO();
     inputDataVO inputDataVO = new inputDataVO();
     IrdaVO irdaVO = new IrdaVO();
@@ -81,9 +82,7 @@ public class Billing_SearchBy_Activity extends Activity {
     EditText ET_PreviousReadingKWH;
     EditText ET_PreviousReadingKVah;
 
-    Button Btn_Back;
     Button Btn_Ok;
-    Button Btn_Next;
     Button Btn_home;
     int sequence_count = 1;
     ArrayList<String> routeSequence = new ArrayList<String>();
@@ -145,6 +144,11 @@ public class Billing_SearchBy_Activity extends Activity {
                 finish();
             }
         });
+
+        serviceNumber = getIntent().getExtras().getString("serviceNo", "");
+        ET_SrvEntered.setText(serviceNumber);
+
+
         dbAdapter = DBAdapter.getDBAdapterInstance(this);
         SP_SearchBy.getBackground().setColorFilter(Color.parseColor("#ffffff"), PorterDuff.Mode.SRC_ATOP);
         ArrayAdapter<String> adapter_SearchBy = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, sel_searchBy);
@@ -158,7 +162,7 @@ public class Billing_SearchBy_Activity extends Activity {
                 searchby_type = SP_SearchBy.getSelectedItem().toString();
                 //ACT_searchby.setHint(searchby_type+"");
 
-                ET_ServiceNo.setText("");
+                //  ET_ServiceNo.setText("");
                 ET_Name.setText("");
                 ET_Address.setText("");
                 ET_Address1.setText("");
@@ -185,123 +189,80 @@ public class Billing_SearchBy_Activity extends Activity {
             }
         });
 
-        Btn_Ok.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                int billed_count = 0;
+        Btn_Ok.setOnClickListener(arg0 -> {
+            int billed_count = 0;
+            dbAdapter = DBAdapter.getDBAdapterInstance(Billing_SearchBy_Activity.this);
+            dbAdapter.openDataBase();
+            String already_billed = "select count(*) from output_master2 where consumer_num='" + ET_ServiceNo.getText().toString() + "';";
+            Cursor cursor = dbAdapter.selectRecordsFromDB(already_billed, null);
+            if (cursor.moveToFirst()) {
+                billed_count = cursor.getInt(0);
+            }
+            dbAdapter.close();
+            if (billed_count > 0) {//ALREADY BILLED\nDUPLICATE BILL(Y/N)
+                AlertDialog.Builder builder = new AlertDialog.Builder(Billing_SearchBy_Activity.this);
+                builder.setTitle("Alert");
+                builder.setMessage("Already Billed. Duplicate Bill(Y/N)");
+                builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        PublicVariables.isDuplicateSlip = true;
+                        dialog.dismiss();
+                        dbAdapter.openDataBase();
+                        String already_billed = "select duplicateBillData,QrInformation from duplicateBillPurpose where consumer_num='" + ET_ServiceNo.getText().toString().trim() + "';";
+                        Cursor cursor = dbAdapter.selectRecordsFromDB(already_billed, null);
+                        if (cursor.moveToFirst()) {
+                            inputDataVO.setDuplicatePrintDT(cursor.getString(0));
+                            inputDataVO.setQTPrintData(cursor.getString(1));
+                        }
+                        PublicVariables.isDuplicateSlip = true;
+                        dbAdapter.close();
+                        printBill w = new printBill();
+                        w.execute();
+                        return;
+                    }
+                });
+
+                builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Do nothing
+                        dialog.dismiss();
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            } else {
+
                 dbAdapter = DBAdapter.getDBAdapterInstance(Billing_SearchBy_Activity.this);
                 dbAdapter.openDataBase();
-                String already_billed = "select count(*) from output_master2 where consumer_num='" + ET_ServiceNo.getText().toString() + "';";
-                Cursor cursor = dbAdapter.selectRecordsFromDB(already_billed, null);
-                if (cursor.moveToFirst()) {
-                    billed_count = cursor.getInt(0);
-                }
-                dbAdapter.close();
-                if (billed_count > 0) {//ALREADY BILLED\nDUPLICATE BILL(Y/N)
-                    AlertDialog.Builder builder = new AlertDialog.Builder(Billing_SearchBy_Activity.this);
-                    builder.setTitle("Alert");
-                    builder.setMessage("Already Billed. Duplicate Bill(Y/N)");
-                    builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Do nothing but close the dialog
-                            PublicVariables.isDuplicateSlip = true;
-                            dialog.dismiss();
-                            dbAdapter.openDataBase();
-                            String already_billed = "select duplicateBillData,QrInformation from duplicateBillPurpose where consumer_num='" + ET_ServiceNo.getText().toString().trim() + "';";
-                            Cursor cursor = dbAdapter.selectRecordsFromDB(already_billed, null);
-                            if (cursor.moveToFirst()) {
-                                inputDataVO.setDuplicatePrintDT(cursor.getString(0));
-                                inputDataVO.setQTPrintData(cursor.getString(1));
-                            }
-                            PublicVariables.isDuplicateSlip = true;
-                            dbAdapter.close();
-                            printBill w = new printBill();
-                            w.execute();
-                            return;
-                        }
-                    });
-
-                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Do nothing
-                            dialog.dismiss();
-                        }
-                    });
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                } else {
-
-                    dbAdapter = DBAdapter.getDBAdapterInstance(Billing_SearchBy_Activity.this);
-                    dbAdapter.openDataBase();
-                    String query = "select * from INPUT_MASTER where consumer_num like '%" + ET_ServiceNo.getText().toString() + "" + "%';";
-                    readrecord = dbAdapter.selectRecordsFromDB(query, null);
-                    if (readrecord.moveToFirst()) {
-                        if (type.equalsIgnoreCase("Automatic")) {
-                            Intent intent = new Intent(Billing_SearchBy_Activity.this, Search_By_NameActivity.class);//Search_By_NameActivity.class
-                            intent.putExtra("SearchType", "Automatic");
-                            intent.putExtra("ServiceNoToSearch", ET_ServiceNo.getText().toString());
-                            intent.putExtra("IRDAVO", (Serializable) irdaVO);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Intent intent = new Intent(Billing_SearchBy_Activity.this, Search_By_NameActivity.class);
-                            intent.putExtra("SearchType", "ManualSearch");
-                            intent.putExtra("ServiceNoToSearch", ET_ServiceNo.getText().toString());
-                            startActivity(intent);
-                            finish();
-                        }
-                    } else
-                        new AlertMessage().alertMessage(Billing_SearchBy_Activity.this, "Alert", "Meter Not found.");
+                String query = "select * from INPUT_MASTER where consumer_num like '%" + ET_ServiceNo.getText().toString() + "" + "%';";
+                readrecord = dbAdapter.selectRecordsFromDB(query, null);
+                if (readrecord.moveToFirst()) {
+                    if (type.equalsIgnoreCase("Automatic")) {
+                        Intent intent1 = new Intent(Billing_SearchBy_Activity.this, Search_By_NameActivity.class);
+                        intent1.putExtra("showGallery", ET_ServiceNo.getText().toString().equals(serviceNumber));
+                        intent1.putExtra("folderName", serviceNumber);
+                        intent1.putExtra("SearchType", "Automatic");
+                        intent1.putExtra("ServiceNoToSearch", ET_ServiceNo.getText().toString());
+                        intent1.putExtra("IRDAVO", (Serializable) irdaVO);
+                        startActivity(intent1);
+                        finish();
+                    } else {
+                        Intent intent1 = new Intent(Billing_SearchBy_Activity.this, Search_By_NameActivity.class);
+                        intent1.putExtra("showGallery", ET_ServiceNo.getText().toString().equals(serviceNumber));
+                        intent1.putExtra("SearchType", "ManualSearch");
+                        intent1.putExtra("folderName", serviceNumber);
+                        intent1.putExtra("ServiceNoToSearch", ET_ServiceNo.getText().toString());
+                        startActivity(intent1);
+                        finish();
+                    }
+                } else
+                    new AlertMessage().alertMessage(Billing_SearchBy_Activity.this, "Alert", "Meter Not found.");
 
 
-                }
             }
         });
-
-	/*	Btn_Ok.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View arg0) {
-				
-				int billed_count=0;
-				dbAdapter.openDataBase();
-				String already_billed = "select count(*) from upload_data where cast(Usc_Code as int)='"
-						+ ET_USCNo.getText().toString() + "';";
-				Cursor cursor = dbAdapter.selectRecordsFromDB(
-						already_billed, null);
-				if (cursor.moveToFirst()) {
-					billed_count = cursor.getInt(0);
-				}
-				dbAdapter.close();
-				if(billed_count>0){
-					AlertDialog alert = new AlertDialog.Builder(
-							Billing_SearchBy_Activity.this).create();
-					alert.setTitle("VALIDATION");
-					// alert.setIcon(R.drawable.warning);
-					alert.setMessage("Already Billed ");
-					alert.setButton("OK",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-                                                    int which) {
-									
-								}
-							});
-					alert.show();
-					return;
-				}
-				else{
-				//AANIL
-				//	Intent intent=new Intent(Billing_Sequence_Activity.this,Billing_seqselect_Activity.class);
-				//	intent.putExtra("accountid", ET_AccountId.getText().toString());
-				//	startActivity(intent);
-				//	finish();
-					Toast.makeText(Billing_SearchBy_Activity.this,"Not billed",Toast.LENGTH_LONG).show();
-
-				}
-			}
-		});
-*/
 
 
         Btn_GetDetails.setOnClickListener(arg0 -> {
@@ -324,13 +285,13 @@ public class Billing_SearchBy_Activity extends Activity {
                 readrecord = dbAdapter.selectRecordsFromDB(query, null);
                 if (readrecord.moveToFirst()) {
 
-                    Button offlineBtn  =   findViewById(R.id.offlineBtn);
+                    Button offlineBtn = findViewById(R.id.offlineBtn);
 
                     offlineBtn.setVisibility(View.VISIBLE);
                     offlineBtn.setOnClickListener(view -> {
                         Intent offlineIntent = new Intent(Billing_SearchBy_Activity.this, OfflineOcrInsertActivity.class);
                         offlineIntent.putExtra("serviceNumber", ET_ServiceNo.getText().toString());
-                        offlineIntent.putExtra("phase",ET_Phase.getText().toString());
+                        offlineIntent.putExtra("phase", ET_Phase.getText().toString());
                         startActivity(offlineIntent);
                     });
                     ET_ServiceNo.setText(readrecord.getString(0).trim());
@@ -581,19 +542,19 @@ public class Billing_SearchBy_Activity extends Activity {
                         }
                     });
 
-                    if(PublicVariables.isDuplicateSlip){
+                    if (PublicVariables.isDuplicateSlip) {
                         tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
                         tyApi.setLineSpace(1);
                         String duplicatePrint = inputDataVO.getDuplicatePrintDT();
                         String[] boldText = duplicatePrint.split("\n");
                         tyApi.appendPrintElement(new PrintElement("DUPLICATE BILL", PrinterConstant.Align.ALIGN_CENTER));
-                        for(int i=0;i<boldText.length;i++){
-                            if(StringUtils.containsIgnoreCase(boldText[i], "SC.NO:") ||
-                                    StringUtils.containsIgnoreCase(boldText[i], "USC:") ||
-                                    StringUtils.containsIgnoreCase(boldText[i], "TOTAL AMOUNT")){
-                                tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
-                            }else{
-                                tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_CENTER));
+                        for (String s : boldText) {
+                            if (StringUtils.containsIgnoreCase(s, "SC.NO:") ||
+                                    StringUtils.containsIgnoreCase(s, "USC:") ||
+                                    StringUtils.containsIgnoreCase(s, "TOTAL AMOUNT")) {
+                                tyApi.appendPrintElement(new PrintElement(s, PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
+                            } else {
+                                tyApi.appendPrintElement(new PrintElement(s, PrinterConstant.Align.ALIGN_CENTER));
                             }
                         }
 //                        tyApi.printText(inputDataVO.getDuplicatePrintDT() + "\n");
@@ -601,7 +562,7 @@ public class Billing_SearchBy_Activity extends Activity {
                         tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
                         tyApi.startPrintElement();
 
-                    }else{
+                    } else {
 //                        Typeface font = Typeface.createFromAsset(getAssets(),"fonts/OpenSans_SemiCondensed-Bold.ttf");
 //
 //                        tyApi.setTypeface(Typeface.create(font, Typeface.BOLD));
@@ -633,37 +594,37 @@ public class Billing_SearchBy_Activity extends Activity {
                         tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 
                         tyApi.setLineSpace(1);
-                        String[] headerData=inputDataVO.getPrintHead().split("\n");
+                        String[] headerData = inputDataVO.getPrintHead().split("\n");
 
-                        for(int i=0;i<headerData.length;i++){
+                        for (int i = 0; i < headerData.length; i++) {
                             tyApi.appendPrintElement(new PrintElement(headerData[i], PrinterConstant.Align.ALIGN_CENTER));
 
                         }
-                        String[] boldText1=inputDataVO.getPrintBoldText1().split("\n");
+                        String[] boldText1 = inputDataVO.getPrintBoldText1().split("\n");
 
-                        for(int i=0;i<boldText1.length;i++){
+                        for (int i = 0; i < boldText1.length; i++) {
                             //tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT));
                             tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
 
                         }
 
-                        String[] body=inputDataVO.getPrintBody().split("\n");
+                        String[] body = inputDataVO.getPrintBody().split("\n");
 
-                        for(int i=0;i<body.length;i++){
+                        for (int i = 0; i < body.length; i++) {
                             tyApi.appendPrintElement(new PrintElement(body[i], PrinterConstant.Align.ALIGN_CENTER));
 
                         }
 
-                        String[] boldText2=inputDataVO.getPrintBoldText2().split("\n");
+                        String[] boldText2 = inputDataVO.getPrintBoldText2().split("\n");
 
-                        for(int i=0;i<boldText2.length;i++){
+                        for (int i = 0; i < boldText2.length; i++) {
                             //tyApi.appendPrintElement(new PrintElement(boldText2[i], PrinterConstant.Align.ALIGN_LEFT));
                             tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText2(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
 
                         }
-                        String[] foot=inputDataVO.getPrintFoot().split("\n");
+                        String[] foot = inputDataVO.getPrintFoot().split("\n");
 
-                        for(int i=0;i<foot.length;i++){
+                        for (int i = 0; i < foot.length; i++) {
                             tyApi.appendPrintElement(new PrintElement(foot[i], PrinterConstant.Align.ALIGN_CENTER));
                         }
                         tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));

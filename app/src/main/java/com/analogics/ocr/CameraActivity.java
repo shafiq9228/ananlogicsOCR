@@ -1,8 +1,6 @@
 package com.analogics.ocr;
 
 import android.annotation.SuppressLint;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -13,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Base64OutputStream;
 import android.view.View;
 import android.widget.Button;
@@ -110,11 +107,12 @@ public class CameraActivity extends AppCompatActivity {
 
     private void takePicture() {
         File myFile = createImageFile();
-        if (myFile == null) {
-            Toast.makeText(getApplicationContext(), "Unable to create File", Toast.LENGTH_SHORT).show();
-        }
         progressLayout.setVisibility(View.VISIBLE);
         captureBtn.setVisibility(View.GONE);
+        if (myFile == null) {
+            Toast.makeText(getApplicationContext(), "Unable to create File", Toast.LENGTH_SHORT).show();
+            return;
+        }
         ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(myFile).build();
         imageCapture.takePicture(outputFileOptions, cameraExecutor, new ImageCapture.OnImageSavedCallback() {
             @Override
@@ -136,7 +134,7 @@ public class CameraActivity extends AppCompatActivity {
                 File actualFile;
                 Bitmap croppedBitmap;
                 boolean isFromAutoExtract = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("isFromAutoExtract", false));
-                if(isFromAutoExtract){
+                if (isFromAutoExtract) {
                     Intent intent = new Intent();
                     croppedBitmap = Bitmap.createBitmap(savedBitmap, 0, (savedBitmap.getHeight() / 2) - 650, savedBitmap.getWidth(), 1300);
                     Uri croppedUri = bitmapToUri(croppedBitmap);
@@ -174,7 +172,7 @@ public class CameraActivity extends AppCompatActivity {
 
                 Uri croppedUri = bitmapToUri(croppedBitmap);
                 boolean isFromOfflineMode = (getIntent().getExtras() != null && getIntent().getExtras().getBoolean("isFromOfflineMode", false));
-                if (isFromOfflineMode){
+                if (isFromOfflineMode) {
                     Intent intent = new Intent();
                     intent.putExtra("imageUri", croppedUri.toString());
                     setResult(1, intent);
@@ -195,23 +193,18 @@ public class CameraActivity extends AppCompatActivity {
 
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
-                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Take Picture Error: " + exception.toString(), Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Take Picture Error: " + exception, Toast.LENGTH_SHORT).show());
             }
         });
     }
 
-    private String bitmapToBase64(Bitmap bitmap) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
-    }
 
     private void hitOCRApi(String imageBase64) {
         try {
 
             MeterDetails.outputBase64 = null;
-            ClipData clipData = ClipData.newPlainText("Google", imageBase64);
-            ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);
+//            ClipData clipData = ClipData.newPlainText("Google", imageBase64);
+//            ((ClipboardManager) getApplicationContext().getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(clipData);
             String url = "https://todoapp-d9a67.el.r.appspot.com/fetchMeterNumber";
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("img", imageBase64);
@@ -234,8 +227,8 @@ public class CameraActivity extends AppCompatActivity {
                     Date currentDate = new Date();
                     String currentDateFormat = sdf.format(currentDate);
 
-                    if(StringUtils.equalsIgnoreCase(ocrType, MeterType.kwh.toString()) ||
-                        StringUtils.equalsIgnoreCase(ocrType, MeterType.Kvah.toString())){
+                    if (StringUtils.equalsIgnoreCase(ocrType, MeterType.kwh.toString()) ||
+                            StringUtils.equalsIgnoreCase(ocrType, MeterType.Kvah.toString())) {
                         meterNumber = compareValues(prevValue, meterNumber);
                     }
 
@@ -358,19 +351,19 @@ public class CameraActivity extends AppCompatActivity {
     }
 
 
-    private String compareValues(String prevValue, String presValue){
-        try{
+    private String compareValues(String prevValue, String presValue) {
+        try {
             double presentValueDb = Double.parseDouble(presValue);
             double prevValueDb = Double.parseDouble(prevValue);
 
-            if(presentValueDb > 1000){
-                while(presentValueDb/prevValueDb > 4){
+            if (presentValueDb > 1000) {
+                while (presentValueDb / prevValueDb > 4) {
                     presValue = StringUtils.substring(presValue, 1, presValue.length());
                     presentValueDb = Double.parseDouble(presValue);
                 }
             }
-        }catch(Exception ex){
-
+        } catch (Exception ex) {
+            // do th
         }
         return presValue;
     }

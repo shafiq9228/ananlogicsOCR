@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -47,7 +48,9 @@ import com.analogics.R;
 import com.analogics.appUtils.Config_SharedPreferances;
 import com.analogics.billingCalculation.Tsspdcl_FileWriting;
 import com.analogics.ocr.CameraActivity;
+import com.analogics.ocr.ClickInterFace;
 import com.analogics.ocr.FileUtil;
+import com.analogics.ocr.ImagePickerSheet;
 import com.analogics.ocr.ImageSheet;
 import com.analogics.ocr.MeterData;
 import com.analogics.ocr.MeterDetails;
@@ -92,11 +95,11 @@ import java.util.Locale;
 import id.zelory.compressor.Compressor;
 
 
-public class Search_By_NameActivity extends AppCompatActivity {
+public class Search_By_NameActivity extends AppCompatActivity implements ClickInterFace {
     String portNo1 = "/dev/ttyHS0";
     //Tsspdcl_BillingCalculation globalVbls = new Tsspdcl_BillingCalculation(); 220124
 
-//    openOcrCamera(false, MeterType.Rmd, "");
+    //    openOcrCamera(false, MeterType.Rmd, "");
     boolean disableOCr;
     MeterType meterType;
     String previousValue = "";
@@ -196,6 +199,10 @@ public class Search_By_NameActivity extends AppCompatActivity {
     TextView kwhDialogAttemptTv;
     TextView kwhAutoExtractTv;
     boolean isIrIrdaReading = false;
+    boolean showGallery = false;
+    String folderName = "";
+    ImagePickerSheet sheet;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -203,12 +210,15 @@ public class Search_By_NameActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_search_by_name);
 
+        showGallery = getIntent().getExtras().getBoolean("showGallery", false);
+        folderName = getIntent().getExtras().getString("folderName", "");
+
         conn = new AnalogicsThermalPrinter(Search_By_NameActivity.this);
         uploadFile = new Tsspdcl_FileWriting(this);
         Intent intent = getIntent();
         SearchType = intent.getStringExtra("SearchType") + "";
 
-        if (!SearchType.equalsIgnoreCase("ManualSearch")){
+        if (!SearchType.equalsIgnoreCase("ManualSearch")) {
             isIrIrdaReading = true;
             irdaVO = (IrdaVO) intent.getSerializableExtra("IRDAVO");
         }
@@ -238,13 +248,10 @@ public class Search_By_NameActivity extends AppCompatActivity {
         }
 
 
-        Btn_home.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(getBaseContext(), MainMenuActivity.class);
-                startActivity(i);
-                finish();
-            }
+        Btn_home.setOnClickListener(view -> {
+            Intent i = new Intent(getBaseContext(), MainMenuActivity.class);
+            startActivity(i);
+            finish();
         });
 
 
@@ -263,8 +270,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 query = "select * from INPUT_MASTER where consumer_num like '%" + ServiceNoToSearch + "" + "%';";
             } else {
                 String ServiceNoToSearch = intent.getStringExtra("ServiceNoToSearch") + "";
-                if (!ServiceNoToSearch.equals("null"))
-                    query = "select * from INPUT_MASTER where consumer_num like '%" + ServiceNoToSearch + "" + "%';";
+                if (!ServiceNoToSearch.equals("null")) query = "select * from INPUT_MASTER where consumer_num like '%" + ServiceNoToSearch + "" + "%';";
                 else {
                     query = "select * from INPUT_MASTER where trim(printf('%08d',meter_num)) like '%" + irdaVO.getMeterNumber() + "" + "%';";
                     if (irdaVO.getMeterNumber().length() > 8) {
@@ -286,11 +292,6 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 ET_Catagory.setText(readrecord.getString(10).trim());
                 ET_SubCatagory.setText(readrecord.getString(11).trim());
                 ET_Phase.setText(readrecord.getString(12).trim());
-
-
-//                inputDataVO.setLoc(readrecord.getString(0).substring(0, 5));
-//                inputDataVO.setLoc1(readrecord.getString(0).substring(5, 8));
-//                inputDataVO.setSerno(readrecord.getString(0).substring(8, 10));
 
                 String consumerData = readrecord.getString(0).trim();
                 if (consumerData.contains(" ")) {
@@ -459,16 +460,12 @@ public class Search_By_NameActivity extends AppCompatActivity {
 
     public void dataentry() {
         PublicVariables.isDuplicateSlip = false;
-        if (!SearchType.equalsIgnoreCase("ManualSearch"))
-            inputDataVO.setMeter_reading_mode('1');
-        else
-            inputDataVO.setMeter_reading_mode('0');
+        if (!SearchType.equalsIgnoreCase("ManualSearch")) inputDataVO.setMeter_reading_mode('1');
+        else inputDataVO.setMeter_reading_mode('0');
 
-        if ((inputDataVO.getMeter_reading_mode() == '1')
-                || (inputDataVO.getMeter_reading_mode() == '2')) {
+        if ((inputDataVO.getMeter_reading_mode() == '1') || (inputDataVO.getMeter_reading_mode() == '2')) {
             inputDataVO.setNewMeterNumber(irdaVO.getMeterNumber());
-            if (StringUtils.isNotBlank(irdaVO.getMeterMake()))
-                inputDataVO.setMtrmk(irdaVO.getMeterMake());
+            if (StringUtils.isNotBlank(irdaVO.getMeterMake())) inputDataVO.setMtrmk(irdaVO.getMeterMake());
             else inputDataVO.setMtrmk("HPL");
             inputDataVO.setPmtrred((long) irdaVO.getKWH());
             inputDataVO.setRecordedMD((float) irdaVO.getHv_rmd());
@@ -576,32 +573,14 @@ public class Search_By_NameActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                if (editText.getText().length() > 0)
-                    ReturnRensponse = Integer.parseInt(editText.getText().toString());
+                if (editText.getText().length() > 0) ReturnRensponse = Integer.parseInt(editText.getText().toString());
                 else ReturnRensponse = 1;
                 System.out.println("automatic_status_entry ret:" + ReturnRensponse);
                 if (ReturnRensponse == 0) inputDataVO.setPmtrsts(1);
                 else inputDataVO.setPmtrsts(ReturnRensponse);
                 System.out.println("Pmtrsts:" + inputDataVO.getPmtrsts());
 
-                if (((((inputDataVO.getPmtrsts() == 4) ||
-                        (inputDataVO.getPmtrsts() == 7) ||
-                        (inputDataVO.getPmtrsts() == 1) ||
-                        (inputDataVO.getPmtrsts() == 9) ||
-                        (inputDataVO.getPmtrsts() == 3) ||
-                        (inputDataVO.getPmtrsts() == 2) ||
-                        (inputDataVO.getPmtrsts() == 11) ||
-                        (inputDataVO.getPmtrsts() == 5) ||
-                        (inputDataVO.getPmtrsts() == 6) ||
-                        (inputDataVO.getPmtrsts() == 8) ||
-                        (inputDataVO.getPmtrsts() == 12))) && (inputDataVO.getTriVectorFlag() != 1))||
-                        (((inputDataVO.getPmtrsts() == 4) ||
-                                (inputDataVO.getPmtrsts() == 7) ||
-                                (inputDataVO.getPmtrsts() == 1) ||
-                                (inputDataVO.getPmtrsts() == 5)) && (inputDataVO.getTriVectorFlag() == 1)) ||
-                        (((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) ||
-                                (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 5)) &&
-                                (inputDataVO.getNetMeteringFlag() == 1))) {
+                if (((((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 9) || (inputDataVO.getPmtrsts() == 3) || (inputDataVO.getPmtrsts() == 2) || (inputDataVO.getPmtrsts() == 11) || (inputDataVO.getPmtrsts() == 5) || (inputDataVO.getPmtrsts() == 6) || (inputDataVO.getPmtrsts() == 8) || (inputDataVO.getPmtrsts() == 12))) && (inputDataVO.getTriVectorFlag() != 1)) || (((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 5)) && (inputDataVO.getTriVectorFlag() == 1)) || (((inputDataVO.getPmtrsts() == 4) || (inputDataVO.getPmtrsts() == 7) || (inputDataVO.getPmtrsts() == 1) || (inputDataVO.getPmtrsts() == 5)) && (inputDataVO.getNetMeteringFlag() == 1))) {
                     Toast.makeText(Search_By_NameActivity.this, "\"FOR IR/IRDA CONSUMER\\nMANUAL READINGS NOT \\nALLOWED FOR REGULAR\\nCONSMPT.CASES:1,4,7 \\nPLZ IR/IRDA RDG ONLY\".", Toast.LENGTH_LONG).show();
                     automaticStatusEntryFunction();
                     return;
@@ -621,8 +600,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
     }
 
     public int automaticStatusEntryFunction() {
-        if ((inputDataVO.getIrFlag() == 1) &&
-                (inputDataVO.getMeter_reading_mode() == '0')) {
+        if ((inputDataVO.getIrFlag() == 1) && (inputDataVO.getMeter_reading_mode() == '0')) {
             automaticStatusEntry("IR/IRDA METER CONS\nPRES STATUS:", 2);
         } else {
             if ((inputDataVO.getIrFlag() == 1) || (inputDataVO.getIrFlag() == 0)) {
@@ -673,8 +651,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 RMDEntry1("PRS KWH:" + inputDataVO.getPresentKwh() + "\nPRS STS:" + inputDataVO.getPmtrsts() + "\nPF:" + inputDataVO.getPf() + presentKvah + "\nRMD:", 6);
             } else if (inputDataVO.getMeter_class() == 2) {
                 RMDEntry1("PRS KWH:" + inputDataVO.getPresentKwh() + "\nPRS STS:" + inputDataVO.getPmtrsts() + "\nPRS KVAH:" + inputDataVO.getPresentKvah() + "\nRMD:", 6);
-            } else
-                RMDEntry1("PRS KWH:" + inputDataVO.getPresentKwh() + "\nPRS STS:" + inputDataVO.getPmtrsts() + presentKvah + "\nRMD:", 6);
+            } else RMDEntry1("PRS KWH:" + inputDataVO.getPresentKwh() + "\nPRS STS:" + inputDataVO.getPmtrsts() + presentKvah + "\nRMD:", 6);
         } else if ((inputDataVO.getMeter_class() == 2) || ((inputDataVO.getTriVectorFlag() == 1) && (inputDataVO.getMeter_class() == 0))) {
             RMDEntry1("PRS KWH:" + inputDataVO.getPresentKwh() + "\nPRS STS:" + inputDataVO.getPmtrsts() + "\nPRS KVAH:" + inputDataVO.getPresentKvah() + "\nRMD:", 6);
         } else exportKWHreadingEntryFunction();
@@ -711,6 +688,30 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
+        Button Btn_Gallery = alertLayout.findViewById(R.id.Btn_Gallery);
+
+        Btn_Gallery.setOnClickListener(view -> {
+            sheet = new ImagePickerSheet(meterSerialNumber, this);
+            sheet.show(getSupportFragmentManager(), "");
+            meterType = MeterType.Rmd;
+            kwhPhotoBtn = Btn_Gallery;
+        });
+
+        if (showGallery) {
+            Btn_Gallery.setVisibility(View.VISIBLE);
+            Btn_photo.setVisibility(View.GONE);
+        } else {
+            Btn_Gallery.setVisibility(View.GONE);
+            Btn_photo.setVisibility(View.VISIBLE);
+        }
+
+        Btn_Gallery.setOnClickListener(view -> {
+            meterType = MeterType.Rmd;
+            sheet = new ImagePickerSheet(meterSerialNumber, this);
+            sheet.show(getSupportFragmentManager(), "");
+            kwhPhotoBtn = Btn_Gallery;
+
+        });
         Btn_photo.setOnClickListener(view -> {
 
             openOcrCamera(false, MeterType.Rmd, "");
@@ -781,6 +782,23 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
 
         numberOfTries = 0;
+
+        Button Btn_Gallery = alertLayout.findViewById(R.id.Btn_Gallery);
+
+        Btn_Gallery.setOnClickListener(view -> {
+            sheet = new ImagePickerSheet(meterSerialNumber, this);
+            sheet.show(getSupportFragmentManager(), "");
+            meterType = MeterType.Rmd;
+            kwhPhotoBtn = Btn_Gallery;
+        });
+        if (showGallery) {
+            Btn_Gallery.setVisibility(View.VISIBLE);
+            Btn_photo.setVisibility(View.GONE);
+        } else {
+            Btn_Gallery.setVisibility(View.GONE);
+            Btn_photo.setVisibility(View.VISIBLE);
+        }
+
         Btn_photo.setOnClickListener(view -> {
             openOcrCamera(false, MeterType.Rmd, "");
         });
@@ -889,9 +907,9 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 }
             }
 
-            if(isIrIrdaReading){
+            if (isIrIrdaReading) {
                 confirmationDialog();
-            }else{
+            } else {
                 MeterDetails.fullImageBitmap = null;
                 // Inflate the custom layout for the dialog
                 LayoutInflater layoutInflater = getLayoutInflater();
@@ -909,6 +927,23 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 alertDialog.setCancelable(false);
                 alertDialog.setView(alertLayout);
                 AlertDialog dialog = alertDialog.create();
+
+                Button Btn_Gallery = alertLayout.findViewById(R.id.Btn_Gallery);
+
+                Btn_Gallery.setOnClickListener(view -> {
+                    sheet = new ImagePickerSheet(meterSerialNumber, this);
+                    sheet.show(getSupportFragmentManager(), "");
+                    meterType = MeterType.FullPhoto;
+                    kwhPhotoBtn = Btn_Gallery;
+                });
+
+                if (showGallery) {
+                    Btn_Gallery.setVisibility(View.VISIBLE);
+                    photoBtn.setVisibility(View.GONE);
+                } else {
+                    Btn_Gallery.setVisibility(View.GONE);
+                    photoBtn.setVisibility(View.VISIBLE);
+                }
                 photoBtn.setOnClickListener(view -> openOcrCamera(true, MeterType.FullPhoto, ""));
                 nextBtn.setOnClickListener(v -> {
                     if (MeterDetails.fullImageBitmap != null) {
@@ -1066,11 +1101,11 @@ public class Search_By_NameActivity extends AppCompatActivity {
         inputDataVO.setDueyy(Integer.parseInt(currentDate.substring(4, 8).toString()));
         future_date();
 
-        if(inputDataVO.getArrearsBefore()  > 10 || inputDataVO.getArrearsAfter() > 10){
+        if (inputDataVO.getArrearsBefore() > 10 || inputDataVO.getArrearsAfter() > 10) {
             inputDataVO.setDisdd(inputDataVO.getOmtrdd());
             inputDataVO.setDismm(inputDataVO.getOmtrmm());
             inputDataVO.setDisyy(inputDataVO.getOmtryy());
-        }else{
+        } else {
             inputDataVO.setDisdd(Integer.parseInt(currentDate.substring(0, 2).toString()));
             inputDataVO.setDismm(Integer.parseInt(currentDate.substring(2, 4).toString()));
             inputDataVO.setDisyy(Integer.parseInt(currentDate.substring(4, 8).toString()));
@@ -1090,8 +1125,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
             }
             else*/
             {
-                if ((inputDataVO.getPmtrsts() == 1) && (inputDataVO.getPresentKwh() == inputDataVO.getPreviousKwh()))
-                    inputDataVO.setPmtrsts(9);
+                if ((inputDataVO.getPmtrsts() == 1) && (inputDataVO.getPresentKwh() == inputDataVO.getPreviousKwh())) inputDataVO.setPmtrsts(9);
 //                ret = globalVbls.calculate(inputDataVO); 220124
 
 
@@ -1161,15 +1195,11 @@ public class Search_By_NameActivity extends AppCompatActivity {
 //        }else
 //            inputDataVO.setAbnormalFlag("0");
 
-        if(inputDataVO.getCat() == 1 && inputDataVO.getNetAmount() > 30000) {
-            if ((inputDataVO.getUnits() > (inputDataVO.getOldavg() * 4)) ||
-                    (inputDataVO.getBilledDemand() > (inputDataVO.getContractedLoad() * 4))) {
+        if (inputDataVO.getCat() == 1 && inputDataVO.getNetAmount() > 30000) {
+            if ((inputDataVO.getUnits() > (inputDataVO.getOldavg() * 4)) || (inputDataVO.getBilledDemand() > (inputDataVO.getContractedLoad() * 4))) {
                 inputDataVO.setAbnormalFlag("1");
-            } else
-                inputDataVO.setAbnormalFlag("0");
-        }
-        else
-            inputDataVO.setAbnormalFlag("0");
+            } else inputDataVO.setAbnormalFlag("0");
+        } else inputDataVO.setAbnormalFlag("0");
         /* todo made some changes by @Mk*/
 
 
@@ -1263,10 +1293,8 @@ public class Search_By_NameActivity extends AppCompatActivity {
 
         String aePhoneNo = new Config_SharedPreferances().getAeMobileValues(getApplicationContext());
         if (aePhoneNo.length() == 10) {
-            if (inputDataVO.getPmtrsts() == 2)
-                sendSMS(aePhoneNo, inputDataVO.getService_number() + " ,METER STRUCKUP");
-            if (inputDataVO.getPmtrsts() == 11)
-                sendSMS(aePhoneNo, inputDataVO.getService_number() + " ,METER BURNT");
+            if (inputDataVO.getPmtrsts() == 2) sendSMS(aePhoneNo, inputDataVO.getService_number() + " ,METER STRUCKUP");
+            if (inputDataVO.getPmtrsts() == 11) sendSMS(aePhoneNo, inputDataVO.getService_number() + " ,METER BURNT");
         }
 //        globalVbls.saveDuplicatePrintData(inputDataVO, aePhoneNo); 220124
         printBill w = new printBill();
@@ -1275,8 +1303,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
     }
 
 
-    private void openOcrCamera(boolean isOcrDisable,
-                               MeterType ocrType,  String prevValue) {
+    private void openOcrCamera(boolean isOcrDisable, MeterType ocrType, String prevValue) {
 
         disableOCr = isOcrDisable;
         previousValue = prevValue;
@@ -1291,6 +1318,42 @@ public class Search_By_NameActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         intent.putExtra("isFromAutoExtract", (ocrType != MeterType.FullPhoto));
         startActivityForResult(intent, 111);
+    }
+
+    @Override
+    public void onItemClick(View view, int position) {
+
+    }
+
+    @Override
+    public void onValueReceived(String value) {
+        try {
+            sheet.dismiss();
+
+            Uri imageUri = Uri.fromFile(new File(value));
+
+            File actualFile = FileUtil.from(getApplicationContext(), imageUri);
+            kwhDialogImageView.setVisibility(View.VISIBLE);
+            kwhDialogImageView.setImageURI(imageUri);
+            File compressImage = new Compressor(getApplicationContext()).setMaxWidth(1080).setMaxHeight(520).setQuality(60).setCompressFormat(Bitmap.CompressFormat.JPEG).setDestinationDirectoryPath(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).compressToFile(actualFile);
+            String croppedBase64 = convertImageFileToBase64(compressImage);
+            hitOCRApi(croppedBase64);
+
+            Bitmap bitmap = BitmapFactory.decodeFile(value);
+            // Toast.makeText(getApplicationContext(), "" + bitmap, Toast.LENGTH_SHORT).show();
+            MeterDetails.fullImageBitmap = bitmap;
+            kwhDialogFullImageBtn.setOnClickListener(view -> {
+                ImageSheet imageSheet = new ImageSheet(bitmap);
+                imageSheet.show(getSupportFragmentManager(), "");
+            });
+
+
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "IM ERR " + e.toString(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+
+
     }
 
     private class printBill extends AsyncTask<byte[], String, String> {
@@ -1345,18 +1408,16 @@ public class Search_By_NameActivity extends AppCompatActivity {
                         }
                     });
 
-                    if(PublicVariables.isDuplicateSlip){
+                    if (PublicVariables.isDuplicateSlip) {
                         tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
                         tyApi.setLineSpace(1);
                         String duplicatePrint = inputDataVO.getDuplicatePrintDT();
                         String[] boldText = duplicatePrint.split("\n");
                         tyApi.appendPrintElement(new PrintElement("DUPLICATE BILL", PrinterConstant.Align.ALIGN_CENTER));
-                        for(int i=0;i<boldText.length;i++){
-                            if(StringUtils.containsIgnoreCase(boldText[i], "SC.NO:") ||
-                                    StringUtils.containsIgnoreCase(boldText[i], "USC:") ||
-                                    StringUtils.containsIgnoreCase(boldText[i], "TOTAL AMOUNT")){
+                        for (int i = 0; i < boldText.length; i++) {
+                            if (StringUtils.containsIgnoreCase(boldText[i], "SC.NO:") || StringUtils.containsIgnoreCase(boldText[i], "USC:") || StringUtils.containsIgnoreCase(boldText[i], "TOTAL AMOUNT")) {
                                 tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
-                            }else{
+                            } else {
                                 tyApi.appendPrintElement(new PrintElement(boldText[i], PrinterConstant.Align.ALIGN_CENTER));
                             }
                         }
@@ -1365,7 +1426,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
                         tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
                         ret = tyApi.startPrintElement();
 
-                    }else{
+                    } else {
 //                        Typeface font = Typeface.createFromAsset(getAssets(),"fonts/OpenSans_SemiCondensed-Bold.ttf");
 //
 //                        tyApi.setTypeface(Typeface.create(font, Typeface.BOLD));
@@ -1397,37 +1458,37 @@ public class Search_By_NameActivity extends AppCompatActivity {
                         tyApi.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
 
                         tyApi.setLineSpace(1);
-                        String[] headerData=inputDataVO.getPrintHead().split("\n");
+                        String[] headerData = inputDataVO.getPrintHead().split("\n");
 
-                        for(int i=0;i<headerData.length;i++){
+                        for (int i = 0; i < headerData.length; i++) {
                             tyApi.appendPrintElement(new PrintElement(headerData[i], PrinterConstant.Align.ALIGN_CENTER));
 
                         }
-                        String[] boldText1=inputDataVO.getPrintBoldText1().split("\n");
+                        String[] boldText1 = inputDataVO.getPrintBoldText1().split("\n");
 
-                        for(int i=0;i<boldText1.length;i++){
+                        for (int i = 0; i < boldText1.length; i++) {
                             //tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT));
                             tyApi.appendPrintElement(new PrintElement(boldText1[i], PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
 
                         }
 
-                        String[] body=inputDataVO.getPrintBody().split("\n");
+                        String[] body = inputDataVO.getPrintBody().split("\n");
 
-                        for(int i=0;i<body.length;i++){
+                        for (int i = 0; i < body.length; i++) {
                             tyApi.appendPrintElement(new PrintElement(body[i], PrinterConstant.Align.ALIGN_CENTER));
 
                         }
 
-                        String[] boldText2=inputDataVO.getPrintBoldText2().split("\n");
+                        String[] boldText2 = inputDataVO.getPrintBoldText2().split("\n");
 
-                        for(int i=0;i<boldText2.length;i++){
+                        for (int i = 0; i < boldText2.length; i++) {
                             //tyApi.appendPrintElement(new PrintElement(boldText2[i], PrinterConstant.Align.ALIGN_LEFT));
                             tyApi.appendPrintElement(new PrintElement(inputDataVO.getPrintBoldText2(), PrinterConstant.Align.ALIGN_LEFT, PrinterConstant.FontSize.FONT_SIZE_LARGE));
 
                         }
-                        String[] foot=inputDataVO.getPrintFoot().split("\n");
+                        String[] foot = inputDataVO.getPrintFoot().split("\n");
 
-                        for(int i=0;i<foot.length;i++){
+                        for (int i = 0; i < foot.length; i++) {
                             tyApi.appendPrintElement(new PrintElement(foot[i], PrinterConstant.Align.ALIGN_CENTER));
                         }
                         tyApi.appendPrintElement(new PrintElement("\n", PrinterConstant.Align.ALIGN_CENTER));
@@ -1552,8 +1613,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
             public void onClick(View v) {
                 dialog.dismiss();
 
-                if (editText.getText().length() > 0)
-                    ReturnRensponse = Integer.parseInt(editText.getText().toString());
+                if (editText.getText().length() > 0) ReturnRensponse = Integer.parseInt(editText.getText().toString());
                 else ReturnRensponse = 1;
                 System.out.println("status_entry ret:" + ReturnRensponse);
                 if (ReturnRensponse == 0) {
@@ -1673,8 +1733,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                if (editText.getText().length() > 0)
-                    ReturnRensponse = Integer.parseInt(editText.getText().toString());
+                if (editText.getText().length() > 0) ReturnRensponse = Integer.parseInt(editText.getText().toString());
                 else ReturnRensponse = 1;
                 System.out.println("status_entry ret:" + ReturnRensponse);
                 if (ReturnRensponse == 0) {
@@ -1751,8 +1810,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
-                if (editText.getText().length() > 0)
-                    ReturnRensponse = Integer.parseInt(editText.getText().toString());
+                if (editText.getText().length() > 0) ReturnRensponse = Integer.parseInt(editText.getText().toString());
                 else ReturnRensponse = 1;
                 System.out.println("presentStatusEntry ret:" + ReturnRensponse);
                 if (ReturnRensponse == 0) inputDataVO.setPmtrsts(1);
@@ -2027,10 +2085,11 @@ public class Search_By_NameActivity extends AppCompatActivity {
         textView.setText(Msg);
         EditText editText = alertLayout.findViewById(R.id.Status);
         editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLen)});
-        Button Btn_next = (Button) alertLayout.findViewById(R.id.Btn_next);
-        Button Btn_back = (Button) alertLayout.findViewById(R.id.Btn_back);
-        Button Btn_photo = (Button) alertLayout.findViewById(R.id.Btn_photo);
+        Button Btn_next = alertLayout.findViewById(R.id.Btn_next);
+        Button Btn_back = alertLayout.findViewById(R.id.Btn_back);
+        Button Btn_photo = alertLayout.findViewById(R.id.Btn_photo);
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
+        Button Btn_Gallery = alertLayout.findViewById(R.id.Btn_Gallery);
 
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(Search_By_NameActivity.this);
@@ -2049,9 +2108,23 @@ public class Search_By_NameActivity extends AppCompatActivity {
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
         kwhDialogEditText = editText;
         numberOfTries = 0;
+
+        Btn_Gallery.setOnClickListener(view -> {
+            sheet = new ImagePickerSheet(meterSerialNumber, this);
+            sheet.show(getSupportFragmentManager(), "");
+            meterType = MeterType.Kvah;
+            kwhPhotoBtn = Btn_Gallery;
+        });
+
+        if (showGallery) {
+            Btn_Gallery.setVisibility(View.VISIBLE);
+            Btn_photo.setVisibility(View.GONE);
+        } else {
+            Btn_Gallery.setVisibility(View.GONE);
+            Btn_photo.setVisibility(View.VISIBLE);
+        }
         Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.Kvah,
-                    String.valueOf(inputDataVO.getPreviousKvah()));
+            openOcrCamera(false, MeterType.Kvah, String.valueOf(inputDataVO.getPreviousKvah()));
 
         });
 
@@ -2106,17 +2179,32 @@ public class Search_By_NameActivity extends AppCompatActivity {
         Button Btn_back = alertLayout.findViewById(R.id.Btn_back);
         Button Btn_photo = alertLayout.findViewById(R.id.Btn_photo);
 
+
         kwhDialogImageView = alertLayout.findViewById(R.id.Meter_Image_View);
         kwhPhotoBtn = Btn_photo;
         kwhDialogEditText = editText;
         kwhDialogAttemptTv = alertLayout.findViewById(R.id.attemptTv);
         kwhAutoExtractTv = alertLayout.findViewById(R.id.autoExtractTv);
         kwhDialogFullImageBtn = alertLayout.findViewById(R.id.imageSheetBtn);
+        Button Btn_Gallery = alertLayout.findViewById(R.id.Btn_Gallery);
+
+        Btn_Gallery.setOnClickListener(view -> {
+            sheet = new ImagePickerSheet(meterSerialNumber, this);
+            sheet.show(getSupportFragmentManager(), "");
+            meterType = MeterType.kwh;
+            kwhPhotoBtn = Btn_Gallery;
+        });
+        if (showGallery) {
+            Btn_Gallery.setVisibility(View.VISIBLE);
+            Btn_photo.setVisibility(View.GONE);
+        } else {
+            Btn_Gallery.setVisibility(View.GONE);
+            Btn_photo.setVisibility(View.VISIBLE);
+        }
 
         numberOfTries = 0;
         Btn_photo.setOnClickListener(view -> {
-            openOcrCamera(false, MeterType.kwh,
-                    String.valueOf(inputDataVO.getPreviousKwh()));
+            openOcrCamera(false, MeterType.kwh, String.valueOf(inputDataVO.getPreviousKwh()));
 
         });
 
@@ -2276,7 +2364,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
 
     }
 
-    class MyPrinterInitListener implements PrinterInitListener {
+    static class MyPrinterInitListener implements PrinterInitListener {
 
         @Override
         public void onPrinterInit(boolean isSuccess) {
@@ -2312,7 +2400,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (data == null) return;
         String imageUri = data.getStringExtra("imageUri");
-        if(imageUri == null) return;
+        if (imageUri == null) return;
         try {
             kwhDialogImageView.setVisibility(View.VISIBLE);
             kwhDialogImageView.setImageURI(Uri.parse(imageUri));
@@ -2320,7 +2408,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
                 ImageSheet imageSheet = new ImageSheet(MeterDetails.fullImageBitmap);
                 imageSheet.show(getSupportFragmentManager(), "");
             });
-           File actualFile = FileUtil.from(getApplicationContext(), Uri.parse(imageUri));
+            File actualFile = FileUtil.from(getApplicationContext(), Uri.parse(imageUri));
             File compressImage = new Compressor(getApplicationContext()).setMaxWidth(1080).setMaxHeight(520).setQuality(60).setCompressFormat(Bitmap.CompressFormat.JPEG).setDestinationDirectoryPath(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()).compressToFile(actualFile);
             String croppedBase64 = convertImageFileToBase64(compressImage);
             hitOCRApi(croppedBase64);
@@ -2352,7 +2440,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
                     }
 
                     MeterDetails.outputBase64 = jsonObjResp.getJSONObject("data").getString("outputImage");
-                     SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
+                    SimpleDateFormat sdf = new SimpleDateFormat(dateFormat, Locale.getDefault());
                     Date currentDate = new Date();
                     String currentDateFormat = sdf.format(currentDate);
 
@@ -2361,8 +2449,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
 //                        meterNumber = compareValues(prevValue, meterNumber);
 //                    }
 
-                    MeterData data = new MeterData(meterNumber,
-                            currentDateFormat, meterPhaseType, null, false, MeterDetails.outputBase64);
+                    MeterData data = new MeterData(meterNumber, currentDateFormat, meterPhaseType, null, false, MeterDetails.outputBase64);
 
                     if (meterType.toString().equals(MeterType.kwh.toString())) {
                         data.setType(MeterType.kwh);
@@ -2375,36 +2462,37 @@ public class Search_By_NameActivity extends AppCompatActivity {
                         MeterDetails.RmdData = data;
                     }
 
+//                    if (MeterDetails.outputBase64 != null && kwhDialogImageView != null) {
+//
+////                        kwhDialogFullImageBtn.setOnClickListener(view -> {
+////                            ImageSheet imageSheet = new ImageSheet(MeterDetails.fullImageBitmap);
+////                            imageSheet.show(getSupportFragmentManager(), "");
+////                        });
+//                    } else if (kwhDialogImageView != null) {
+//                        kwhDialogImageView.setVisibility(View.GONE);
+//                    }
 
-        if (MeterDetails.outputBase64 != null && kwhDialogImageView != null) {
-            kwhDialogFullImageBtn.setOnClickListener(view -> {
-                ImageSheet imageSheet = new ImageSheet(MeterDetails.fullImageBitmap);
-                imageSheet.show(getSupportFragmentManager(), "");
-            });
-        } else if (kwhDialogImageView != null) {
-            kwhDialogImageView.setVisibility(View.GONE);
-        }
+                    if (kwhDialogEditText != null) {
+                        numberOfTries = numberOfTries + 1;
+                        if (kwhDialogAttemptTv != null) {
+                            kwhDialogAttemptTv.setText("Attempts " + numberOfTries);
+                        }
+                        if (numberOfTries == 3) {
+                            numberOfTries = 0;
+                            kwhPhotoBtn.setVisibility(View.GONE);
 
-        if (kwhDialogEditText != null) {
-            numberOfTries = numberOfTries + 1;
-            if(kwhDialogAttemptTv != null){
-                kwhDialogAttemptTv.setText("Attempts " + numberOfTries);
-            }
-            if (numberOfTries == 3) {
-                numberOfTries = 0;
-                kwhPhotoBtn.setVisibility(View.GONE);
+                        } else {
+                            kwhPhotoBtn.setVisibility(View.VISIBLE);
+                        }
+                        kwhDialogEditText.setText(meterNumber);
 
-            } else {
-                kwhPhotoBtn.setVisibility(View.VISIBLE);
-            }
-            kwhDialogEditText.setText(meterNumber);
-
-        }
-                    kwhAutoExtractTv.setText(""+meterNumber);
+                    }
+                    kwhAutoExtractTv.setText("" + meterNumber);
                     kwhAutoExtractTv.setTextColor(Color.GREEN);
-                 //   kwhAutoExtractTv.setVisibility(View.GONE);
+                    //   kwhAutoExtractTv.setVisibility(View.GONE);
 
                 } catch (Exception e) {
+                    Log.d("fazilApp", e.toString());
                     kwhAutoExtractTv.setText("Capture Failed");
                     kwhAutoExtractTv.setTextColor(Color.RED);
                     kwhAutoExtractTv.setVisibility(View.VISIBLE);
@@ -2414,7 +2502,7 @@ public class Search_By_NameActivity extends AppCompatActivity {
             }, volleyError -> {
                 kwhAutoExtractTv.setText("Capture Failed");
                 kwhAutoExtractTv.setTextColor(Color.RED);
-               // kwhAutoExtractTv.setVisibility(View.GONE);
+                // kwhAutoExtractTv.setVisibility(View.GONE);
                 Toast.makeText(getApplicationContext(), "Error 2 " + volleyError.toString(), Toast.LENGTH_SHORT).show();
 
             });

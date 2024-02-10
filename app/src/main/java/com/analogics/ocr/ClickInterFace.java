@@ -1,0 +1,1 @@
+package com.analogics.ocr;import android.view.View;public interface ClickInterFace {    void onItemClick(View view, int position);    void onValueReceived(String value);}
